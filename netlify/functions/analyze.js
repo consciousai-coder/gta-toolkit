@@ -16,7 +16,7 @@ exports.handler = async function(event) {
 
   const payload = JSON.stringify({
     model: 'claude-sonnet-4-6',
-    max_tokens: 1200,
+    max_tokens: 2000,
     messages: body.messages
   });
 
@@ -38,7 +38,6 @@ exports.handler = async function(event) {
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
         try {
-          // Parse the Anthropic response and return it properly
           const parsed = JSON.parse(data);
           resolve({
             statusCode: 200,
@@ -52,7 +51,7 @@ exports.handler = async function(event) {
           resolve({
             statusCode: 500,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ error: 'Failed to parse Anthropic response.', raw: data.substring(0, 200) })
+            body: JSON.stringify({ error: 'Failed to parse response.', raw: data.substring(0, 200) })
           });
         }
       });

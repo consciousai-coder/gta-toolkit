@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>GTA Realtor AI Toolkit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700;1,800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root {
+  --bg:       #1C1C1A;
+  --surface:  #252520;
+  --raised:   #2E2E28;
+  --border:   rgba(201,168,76,0.18);
+  --border-w: rgba(255,255,255,0.07);
+  --gold:     #C9A84C;
+  --gold-lt:  #E8C96A;
+  --gold-dim: rgba(201,168,76,0.15);
+  --gold-xs:  rgba(201,168,76,0.06);
+  --white:    #ffffff;
+  --w55:      rgba(255,255,255,0.55);
+  --w35:      rgba(255,255,255,0.35);
+  --w15:      rgba(255,255,255,0.12);
+  --red:      #E24B4A;
+  --serif:    'Playfair Display', Georgia, serif;
+  --sans:     'Inter', system-ui, sans-serif;
+  --radius:   3px;
+  --radius-lg:8px;
+}
+
+html{scroll-behavior:smooth;}
+body{font-family:var(--sans);background:var(--bg);color:var(--white);line-height:1.6;font-size:16px;-webkit-font-smoothing:antialiased;}
+
+/* PAGE SWITCHING */
+.page{display:none;}
+.page.active{display:block;}
+
+/* GRID TEXTURE */
+.grid-texture{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.04) 1px,transparent 1px);background-size:32px 32px;pointer-events:none;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(28,28,26,0.95);backdrop-filter:blur(12px);border-bottom:0.5px solid var(--border);padding:0 2.5rem;display:flex;align-items:center;justify-content:space-between;height:58px;}
+.nav-logo{display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none;}
+.nav-logo-mark{width:30px;height:30px;border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;}
+.nav-logo-mark svg{width:16px;height:16px;}
+.nav-brand{font-family:var(--serif);font-size:13px;font-weight:700;color:var(--white);}
+.nav-brand span{color:var(--gold);font-style:italic;}
+.nav-links{display:flex;align-items:center;gap:1.5rem;}
+.nav-link{font-size:13px;color:var(--w55);cursor:pointer;transition:color 0.15s;text-decoration:none;background:none;border:none;}
+.nav-link:hover{color:var(--gold);}
+.nav-cta{background:var(--gold);color:var(--bg);font-family:var(--sans);font-size:13px;font-weight:600;padding:8px 18px;border:none;cursor:pointer;transition:background 0.15s;letter-spacing:0.02em;}
+.nav-cta:hover{background:var(--gold-lt);}
+
+/* EYEBROW */
+.eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:1.25rem;}
+.eyebrow-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+
+/* HERO — SALES PAGE */
+.hero-sales{position:relative;overflow:hidden;padding:7rem 2.5rem 5rem;border-bottom:0.5px solid var(--border);border-left:3px solid var(--gold);}
+.hero-sales-inner{max-width:860px;margin:0 auto;}
+.hero-h1{font-family:var(--serif);font-size:clamp(2.8rem,6vw,4.4rem);font-weight:800;color:var(--white);line-height:1.05;margin-bottom:0.25rem;}
+.hero-h1-gold{font-family:var(--serif);font-size:clamp(2.8rem,6vw,4.4rem);font-weight:800;font-style:italic;color:var(--gold);line-height:1.05;margin-bottom:1rem;}
+.hero-tag{font-family:var(--serif);font-size:1.25rem;font-style:italic;color:var(--gold);margin-bottom:1.25rem;line-height:1.4;}
+.hero-body{font-size:1rem;color:var(--w55);max-width:560px;line-height:1.75;margin-bottom:2.5rem;font-weight:300;}
+.hero-cta-row{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:3rem;}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--bg);font-family:var(--sans);font-size:14px;font-weight:600;padding:13px 28px;border:none;cursor:pointer;transition:background 0.15s;letter-spacing:0.02em;}
+.btn-primary:hover{background:var(--gold-lt);}
+.btn-ghost{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--gold);font-family:var(--sans);font-size:14px;font-weight:500;padding:12px 28px;border:1px solid var(--gold);cursor:pointer;transition:all 0.15s;}
+.btn-ghost:hover{background:var(--gold-dim);}
+.hero-note{font-size:12px;color:var(--w35);}
+.stats-row{display:flex;gap:0;border-top:0.5px solid var(--border);padding-top:1.5rem;}
+.stat-item{padding:0 2rem;border-right:0.5px solid var(--border);}
+.stat-item:first-child{padding-left:0;}
+.stat-item:last-child{border-right:none;}
+.stat-num{font-family:var(--serif);font-size:2.2rem;font-weight:700;color:var(--gold);line-height:1;}
+.stat-label{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--w35);margin-top:4px;}
+
+/* PAIN MARQUEE */
+.marquee-strip{background:var(--surface);border-top:0.5px solid var(--border);border-bottom:0.5px solid var(--border);padding:0.9rem 0;overflow:hidden;}
+.marquee-inner{display:flex;gap:3rem;animation:marquee 28s linear infinite;white-space:nowrap;}
+.marquee-item{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--w55);flex-shrink:0;font-weight:400;}
+.marquee-item::before{content:'';width:4px;height:4px;background:var(--gold);border-radius:50%;flex-shrink:0;}
+@keyframes marquee{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* SECTIONS */
+.section{padding:5rem 2.5rem;}
+.section-inner{max-width:900px;margin:0 auto;}
+.section-title{font-family:var(--serif);font-size:clamp(1.8rem,3.5vw,2.4rem);font-weight:700;color:var(--white);margin-bottom:0.5rem;line-height:1.15;}
+.section-title em{color:var(--gold);font-style:italic;}
+.section-sub{font-size:15px;color:var(--w55);font-weight:300;max-width:560px;line-height:1.7;margin-bottom:2.5rem;}
+
+/* WHAT'S INSIDE */
+.inside-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:0.5px solid var(--border);}
+.inside-card{background:var(--surface);padding:1.75rem 1.5rem;}
+.inside-card:hover{background:var(--raised);}
+.inside-num{font-family:var(--serif);font-size:2.5rem;font-weight:700;color:var(--gold);line-height:1;margin-bottom:10px;}
+.inside-title{font-size:14px;font-weight:600;color:var(--white);margin-bottom:6px;letter-spacing:0.01em;}
+.inside-desc{font-size:13px;color:var(--w55);line-height:1.6;font-weight:300;}
+
+/* PAIN POINTS */
+.pain-list{display:flex;flex-direction:column;gap:0;border:0.5px solid var(--border);}
+.pain-item{display:flex;gap:1.25rem;padding:1.25rem 1.5rem;border-bottom:0.5px solid var(--border-w);align-items:flex-start;}
+.pain-item:last-child{border-bottom:none;}
+.pain-rank{font-family:var(--serif);font-size:1.4rem;font-weight:700;color:var(--gold);min-width:28px;line-height:1.2;}
+.pain-body{}
+.pain-title{font-size:14px;font-weight:600;color:var(--white);margin-bottom:3px;}
+.pain-desc{font-size:13px;color:var(--w55);font-weight:300;line-height:1.6;}
+.pain-fix{font-size:12px;color:var(--gold);margin-top:5px;font-weight:500;}
+
+/* PROOF */
+.proof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:2rem;}
+.proof-card{background:var(--surface);border:0.5px solid var(--border);padding:1.5rem;}
+.proof-stars{color:var(--gold);font-size:13px;letter-spacing:2px;margin-bottom:10px;}
+.proof-quote{font-family:var(--serif);font-size:14px;font-style:italic;color:var(--w55);line-height:1.6;margin-bottom:14px;}
+.proof-agent{display:flex;align-items:center;gap:10px;}
+.proof-avatar{width:34px;height:34px;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--gold);flex-shrink:0;}
+.proof-name{font-size:13px;font-weight:500;color:var(--white);}
+.proof-role{font-size:11px;color:var(--w35);}
+
+/* PRICING */
+.pricing-box{border:1px solid var(--gold);padding:2.5rem;max-width:520px;position:relative;margin-top:2rem;}
+.pricing-badge{position:absolute;top:-12px;left:1.5rem;background:var(--gold);color:var(--bg);font-size:11px;font-weight:700;padding:4px 14px;letter-spacing:0.06em;text-transform:uppercase;}
+.pricing-price{display:flex;align-items:baseline;gap:8px;margin-bottom:1.25rem;}
+.price-amount{font-family:var(--serif);font-size:3.5rem;font-weight:700;color:var(--gold);line-height:1;}
+.price-label{font-size:14px;color:var(--w55);}
+.pricing-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:1.75rem;}
+.pricing-list li{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--w55);font-weight:300;}
+.pricing-list li::before{content:'';width:14px;height:1px;background:var(--gold);flex-shrink:0;}
+.pricing-guarantee{font-size:12px;color:var(--w35);margin-top:14px;font-style:italic;}
+
+/* NEIGHBOURHOOD SECTION */
+.nbhd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:2rem;}
+.nbhd-card{background:var(--surface);border:0.5px solid var(--border);border-left:2px solid var(--gold);padding:1.5rem;}
+.nbhd-city{font-family:var(--serif);font-size:1.2rem;font-weight:700;color:var(--white);margin-bottom:4px;}
+.nbhd-focus{font-size:12px;color:var(--gold);font-weight:500;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em;}
+.nbhd-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.nbhd-tag{font-size:11px;padding:2px 8px;background:var(--gold-xs);border:0.5px solid var(--border);color:var(--w55);}
+
+/* FAQ */
+.faq-list{display:flex;flex-direction:column;gap:0;border:0.5px solid var(--border);margin-top:2rem;}
+.faq-item{border-bottom:0.5px solid var(--border-w);overflow:hidden;}
+.faq-item:last-child{border-bottom:none;}
+.faq-q{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.5rem;cursor:pointer;font-size:14px;font-weight:500;color:var(--white);gap:1rem;}
+.faq-q:hover{background:var(--raised);}
+.faq-icon{color:var(--gold);font-size:18px;flex-shrink:0;transition:transform 0.2s;line-height:1;}
+.faq-a{font-size:13px;color:var(--w55);line-height:1.7;padding:0 1.5rem 1.1rem;font-weight:300;display:none;}
+.faq-item.open .faq-a{display:block;}
+.faq-item.open .faq-icon{transform:rotate(45deg);}
+
+/* FOOTER CTA */
+.footer-cta{position:relative;overflow:hidden;background:var(--surface);border-top:1px solid var(--gold);padding:5rem 2.5rem;text-align:center;}
+.footer-cta h2{font-family:var(--serif);font-size:2.4rem;font-weight:700;color:var(--white);margin-bottom:0.5rem;}
+.footer-cta h2 em{color:var(--gold);font-style:italic;}
+.footer-cta p{font-size:15px;color:var(--w55);margin-bottom:2rem;font-weight:300;}
+
+/* FOOTER */
+footer{background:var(--bg);border-top:0.5px solid var(--border-w);padding:1.5rem 2.5rem;text-align:center;}
+footer p{font-size:12px;color:var(--w35);}
+footer a{color:var(--w35);text-decoration:none;}
+footer a:hover{color:var(--gold);}
+
+/* ─── ANALYZER PAGE ─── */
+.analyzer-hero{position:relative;overflow:hidden;padding:5rem 2.5rem 3rem;border-bottom:0.5px solid var(--border);border-left:3px solid var(--gold);}
+.analyzer-hero-inner{max-width:760px;margin:0 auto;}
+.ah-h1{font-family:var(--serif);font-size:clamp(2rem,4.5vw,3rem);font-weight:800;color:var(--white);line-height:1.1;margin-bottom:0.25rem;}
+.ah-h1 em{color:var(--gold);font-style:italic;}
+.ah-sub{font-size:15px;color:var(--w55);font-weight:300;line-height:1.7;max-width:540px;margin-bottom:2rem;}
+.ah-stats{display:flex;gap:2.5rem;flex-wrap:wrap;}
+.ah-stat-num{font-family:var(--serif);font-size:1.8rem;font-weight:700;color:var(--gold);line-height:1;}
+.ah-stat-label{font-size:11px;color:var(--w35);margin-top:2px;text-transform:uppercase;letter-spacing:0.06em;}
+
+/* BENCHMARK TABLE */
+.bench-section{background:var(--surface);border-top:0.5px solid var(--border);border-bottom:0.5px solid var(--border);}
+.bench-table-wrap{overflow-x:auto;}
+.bench-table{width:100%;border-collapse:collapse;font-size:13px;}
+.bench-table th{padding:11px 16px;text-align:left;font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);border-bottom:0.5px solid var(--border);background:var(--raised);}
+.bench-table td{padding:11px 16px;border-bottom:0.5px solid var(--border-w);color:var(--w55);font-weight:300;}
+.bench-table tr:last-child td{border-bottom:none;}
+.bench-table td:first-child{font-weight:500;color:var(--white);}
+.bench-table tr:hover td{background:var(--raised);}
+.comp-pill{display:inline-block;font-size:10px;padding:2px 8px;font-weight:600;letter-spacing:0.04em;}
+.comp-hard{background:rgba(226,75,74,0.12);color:#E24B4A;border:0.5px solid rgba(226,75,74,0.3);}
+.comp-mod{background:rgba(201,168,76,0.12);color:var(--gold);border:0.5px solid var(--border);}
+.comp-soft{background:rgba(255,255,255,0.06);color:var(--w55);border:0.5px solid var(--border-w);}
+
+/* TOOL AREA */
+.tool-area{padding:4rem 2.5rem;}
+.tool-area-inner{max-width:700px;margin:0 auto;}
+
+/* EMAIL GATE */
+.gate-box{background:var(--surface);border:0.5px solid var(--border);border-left:3px solid var(--gold);padding:2.5rem;margin-bottom:2rem;}
+.gate-h3{font-family:var(--serif);font-size:1.5rem;font-weight:700;color:var(--white);margin-bottom:6px;}
+.gate-p{font-size:14px;color:var(--w55);margin-bottom:1.5rem;font-weight:300;line-height:1.6;}
+.gate-form{display:flex;flex-direction:column;gap:10px;max-width:380px;}
+.field-label{font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;display:block;}
+.text-input{width:100%;height:42px;background:var(--raised);border:0.5px solid var(--border);color:var(--white);font-family:var(--sans);font-size:14px;padding:0 14px;outline:none;transition:border-color 0.15s;border-radius:0;}
+.text-input:focus{border-color:var(--gold);}
+.text-input::placeholder{color:var(--w35);}
+select.text-input option{background:var(--raised);color:var(--white);}
+textarea.text-input{height:80px;padding:10px 14px;resize:vertical;}
+.gate-fine{font-size:11px;color:var(--w35);margin-top:6px;}
+.gate-error{font-size:13px;color:var(--red);margin-top:8px;display:none;}
+
+/* FORM */
+.analyzer-form{display:none;}
+.analyzer-form.visible{display:block;}
+.form-confirmed{background:var(--gold-dim);border:0.5px solid var(--border);padding:10px 16px;font-size:13px;color:var(--gold);display:flex;align-items:center;gap:8px;margin-bottom:1.5rem;}
+.form-confirmed span{color:var(--w55);}
+.fsection{margin-bottom:1.75rem;}
+.fsection-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;padding-bottom:8px;border-bottom:0.5px solid var(--border);}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fgroup{display:flex;flex-direction:column;gap:5px;}
+.fgroup.full{grid-column:1/-1;}
+.hs-row{display:flex;align-items:center;gap:12px;background:var(--gold-xs);border:0.5px solid var(--border);padding:12px 16px;margin-bottom:1.5rem;}
+.hs-text strong{font-size:13px;font-weight:600;color:var(--white);display:block;}
+.hs-text span{font-size:12px;color:var(--w35);}
+.hs-btn{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--bg);background:var(--gold);border:none;padding:7px 16px;cursor:pointer;white-space:nowrap;flex-shrink:0;text-decoration:none;transition:background 0.15s;}
+.hs-btn:hover{background:var(--gold-lt);}
+.tag-wrap{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:1.5rem;}
+.pain-tag{font-size:12px;padding:5px 12px;background:var(--raised);border:0.5px solid var(--border-w);cursor:pointer;color:var(--w55);transition:all 0.12s;user-select:none;}
+.pain-tag.selected{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);font-weight:500;}
+.error-msg{font-size:13px;color:var(--red);margin-top:8px;display:none;}
+.spinner{width:20px;height:20px;border:2px solid rgba(201,168,76,0.3);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* RESULTS */
+.results-wrap{display:none;}
+.results-wrap.visible{display:block;}
+.score-banner{background:var(--surface);border:0.5px solid var(--border);border-left:3px solid var(--gold);padding:1.75rem;display:flex;align-items:center;gap:1.5rem;margin-bottom:1.75rem;}
+.score-ring{width:76px;height:76px;flex-shrink:0;}
+.score-ring svg{width:76px;height:76px;}
+.score-meta h3{font-family:var(--serif);font-size:1.4rem;font-weight:700;color:var(--white);margin-bottom:4px;}
+.score-meta p{font-size:14px;color:var(--w55);font-weight:300;line-height:1.6;}
+.r-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;padding-bottom:8px;border-bottom:0.5px solid var(--border);}
+.bench-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.75rem;}
+.bcard{background:var(--surface);border:0.5px solid var(--border);padding:14px 12px;text-align:center;}
+.bcard-label{font-size:10px;color:var(--w35);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;}
+.bcard-you{font-family:var(--serif);font-size:1.4rem;font-weight:700;line-height:1;margin-bottom:4px;}
+.bcard-you.above{color:var(--gold);}
+.bcard-you.below{color:var(--red);}
+.bcard-you.parity{color:var(--w55);}
+.bcard-avg{font-size:11px;color:var(--w35);}
+.insight-list{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:1.75rem;}
+.insight-item{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;background:var(--surface);border:0.5px solid var(--border);}
+.ins-bar{width:2px;flex-shrink:0;align-self:stretch;margin-top:2px;}
+.ins-bar.win{background:var(--gold);}
+.ins-bar.warn{background:#E8A830;}
+.ins-bar.fix{background:var(--red);}
+.insight-text{font-size:13px;color:var(--w55);line-height:1.65;font-weight:300;}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.75rem;}
+.action-card{background:var(--surface);border:0.5px solid var(--border);padding:1.25rem;}
+.ac-num{font-size:10px;color:var(--gold);font-weight:600;letter-spacing:0.08em;margin-bottom:6px;text-transform:uppercase;}
+.ac-title{font-size:14px;font-weight:600;color:var(--white);margin-bottom:5px;}
+.ac-desc{font-size:13px;color:var(--w55);line-height:1.6;font-weight:300;}
+.toolkit-cta-box{background:var(--surface);border:1px solid var(--gold);padding:1.75rem;display:flex;gap:1.25rem;align-items:flex-start;margin-bottom:1rem;}
+.tcb-icon{width:40px;height:40px;background:var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tcb-icon svg{width:20px;height:20px;color:var(--bg);}
+.tcb-body strong{display:block;font-size:14px;font-weight:600;color:var(--white);margin-bottom:4px;}
+.tcb-body p{font-size:13px;color:var(--w55);font-weight:300;line-height:1.5;margin-bottom:12px;}
+.reset-link{display:block;text-align:center;font-size:12px;color:var(--w35);cursor:pointer;margin-top:1rem;text-decoration:underline;}
+.reset-link:hover{color:var(--gold);}
+
+@media(max-width:640px){
+  .inside-grid,.proof-grid,.nbhd-grid,.fgrid,.action-grid,.bench-cards{grid-template-columns:1fr;}
+  .stats-row,.ah-stats{flex-direction:column;gap:1.25rem;}
+  .stat-item{padding:0;border-right:none;border-bottom:0.5px solid var(--border);padding-bottom:1rem;}
+  nav{padding:0 1rem;}
+  .hero-sales,.analyzer-hero,.section,.tool-area{padding-left:1.25rem;padding-right:1.25rem;}
+  .hero-h1,.hero-h1-gold{font-size:2.2rem;}
+  .score-banner{flex-direction:column;text-align:center;}
+  .bench-cards{grid-template-columns:repeat(2,1fr);}
+}
+
+/* ── ANALYZER PAGE ── */
+.analyzer-hero{position:relative;overflow:hidden;padding:4.5rem 2.5rem 3rem;border-bottom:0.5px solid var(--border);border-left:3px solid var(--gold);}
+.analyzer-hero-inner{max-width:860px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;}
+.ah-h1{font-family:var(--serif);font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:800;color:var(--white);line-height:1.1;margin-bottom:0.5rem;}
+.ah-h1 em{color:var(--gold);font-style:italic;}
+.ah-sub{font-size:14px;color:var(--w55);font-weight:300;line-height:1.7;margin-bottom:1.5rem;}
+.ah-stats{display:flex;gap:1.5rem;}
+.ah-stat-num{font-family:var(--serif);font-size:1.6rem;font-weight:700;color:var(--gold);line-height:1;}
+.ah-stat-label{font-size:10px;color:var(--w35);margin-top:2px;text-transform:uppercase;letter-spacing:0.06em;}
+.ah-trust{display:flex;flex-direction:column;gap:10px;}
+.trust-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--w55);}
+.trust-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+.tool-layout{display:grid;grid-template-columns:1fr 340px;gap:2rem;align-items:start;max-width:980px;margin:0 auto;padding:3rem 2.5rem;}
+.gate-box{background:var(--surface);border:0.5px solid var(--border);border-left:3px solid var(--gold);padding:2.5rem;margin-bottom:2rem;}
+.gate-h3{font-family:var(--serif);font-size:1.5rem;font-weight:700;color:var(--white);margin-bottom:6px;}
+.gate-p{font-size:14px;color:var(--w55);margin-bottom:1.5rem;font-weight:300;line-height:1.6;}
+.gate-form{display:flex;flex-direction:column;gap:10px;max-width:380px;}
+.gate-fine{font-size:11px;color:var(--w35);margin-top:6px;}
+.gate-error{font-size:13px;color:var(--red);margin-top:8px;display:none;}
+.form-confirmed{background:var(--gold-dim);border:0.5px solid var(--border);padding:10px 16px;font-size:13px;color:var(--gold);display:flex;align-items:center;gap:8px;margin-bottom:1.5rem;}
+.form-confirmed span{color:var(--w55);}
+.fsection{margin-bottom:2rem;}
+.fsection-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;padding-bottom:8px;border-bottom:0.5px solid var(--border);}
+.area-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.area-card{background:var(--raised);border:0.5px solid var(--border-w);padding:10px 8px;cursor:pointer;text-align:center;transition:all 0.15s;}
+.area-card:hover{border-color:var(--border);background:var(--surface);}
+.area-card.selected{border-color:var(--gold);background:var(--gold-dim);}
+.area-card-name{font-size:12px;font-weight:500;color:var(--white);margin-bottom:2px;}
+.area-card-avg{font-size:10px;color:var(--w35);}
+.area-card.selected .area-card-avg{color:var(--gold);}
+.years-pills{display:flex;gap:8px;flex-wrap:wrap;}
+.years-pill{padding:8px 16px;border:0.5px solid var(--border-w);background:var(--raised);font-size:13px;color:var(--w55);cursor:pointer;transition:all 0.15s;font-family:var(--sans);}
+.years-pill:hover{border-color:var(--border);}
+.years-pill.selected{border-color:var(--gold);background:var(--gold-dim);color:var(--gold);font-weight:500;}
+.slider-group{margin-bottom:1.5rem;}
+.slider-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;}
+.slider-label{font-size:13px;font-weight:500;color:var(--white);}
+.slider-value{font-family:var(--serif);font-size:1.3rem;font-weight:700;color:var(--gold);min-width:60px;text-align:right;}
+.slider-bench{font-size:11px;color:var(--w35);text-align:right;margin-top:2px;}
+.slider-track{position:relative;height:4px;background:var(--raised);border-radius:2px;margin-bottom:6px;}
+.slider-fill{position:absolute;left:0;top:0;height:100%;background:var(--gold);border-radius:2px;transition:width 0.1s;}
+.slider-bench-mark{position:absolute;top:-6px;width:2px;height:16px;background:rgba(201,168,76,0.4);border-radius:1px;transform:translateX(-50%);}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;background:transparent;outline:none;cursor:pointer;position:relative;z-index:1;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--gold);transition:transform 0.1s;}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid var(--bg);}
+.slider-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--w35);}
+.slider-status{font-size:11px;font-weight:600;padding:3px 10px;display:inline-block;margin-top:4px;}
+.status-above{background:rgba(76,175,125,0.12);color:#4CAF7D;border:0.5px solid rgba(76,175,125,0.3);}
+.status-parity{background:rgba(201,168,76,0.12);color:var(--gold);border:0.5px solid var(--border);}
+.status-below{background:rgba(226,75,74,0.12);color:var(--red);border:0.5px solid rgba(226,75,74,0.3);}
+.tag-wrap{display:flex;flex-wrap:wrap;gap:7px;}
+.pain-tag{font-size:12px;padding:6px 12px;background:var(--raised);border:0.5px solid var(--border-w);cursor:pointer;color:var(--w55);transition:all 0.12s;user-select:none;font-family:var(--sans);}
+.pain-tag.selected{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);font-weight:500;}
+.live-panel{background:var(--surface);border:0.5px solid var(--border);border-left:3px solid var(--gold);padding:1.5rem;position:sticky;top:78px;}
+.lp-title{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;padding-bottom:8px;border-bottom:0.5px solid var(--border);}
+.lp-area-name{font-family:var(--serif);font-size:1.3rem;font-weight:700;color:var(--white);margin-bottom:4px;}
+.lp-area-sub{font-size:11px;color:var(--w35);margin-bottom:1.25rem;}
+.lp-metric{margin-bottom:1rem;}
+.lp-metric-label{font-size:11px;color:var(--w35);margin-bottom:4px;display:flex;justify-content:space-between;}
+.lp-metric-label span{color:var(--gold);font-weight:500;}
+.lp-bar-track{height:6px;background:var(--raised);border-radius:3px;position:relative;overflow:hidden;}
+.lp-bar-bench{position:absolute;left:0;top:0;height:100%;background:rgba(201,168,76,0.25);border-radius:3px;transition:width 0.4s;}
+.lp-bar-you{position:absolute;left:0;top:0;height:100%;background:var(--gold);border-radius:3px;transition:width 0.4s;}
+.lp-verdict{font-size:11px;margin-top:4px;}
+.lp-divider{height:0.5px;background:var(--border-w);margin:1.25rem 0;}
+.lp-tip{font-size:12px;color:var(--w35);line-height:1.5;font-style:italic;}
+.lp-empty{font-size:13px;color:var(--w35);line-height:1.6;text-align:center;padding:1rem 0;}
+.error-msg{font-size:13px;color:var(--red);margin-top:8px;display:none;}
+.spinner{width:20px;height:20px;border:2px solid rgba(201,168,76,0.3);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.results-wrap{display:none;}.results-wrap.visible{display:block;}
+.score-banner{background:var(--surface);border:0.5px solid var(--border);border-left:3px solid var(--gold);padding:1.75rem;display:flex;align-items:center;gap:1.5rem;margin-bottom:1.75rem;}
+.score-ring{width:76px;height:76px;flex-shrink:0;}
+.score-ring svg{width:76px;height:76px;}
+.score-meta h3{font-family:var(--serif);font-size:1.4rem;font-weight:700;color:var(--white);margin-bottom:4px;}
+.score-meta p{font-size:14px;color:var(--w55);font-weight:300;line-height:1.6;}
+.r-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;padding-bottom:8px;border-bottom:0.5px solid var(--border);}
+.bench-bars{display:flex;flex-direction:column;gap:14px;margin-bottom:2rem;}
+.bench-bar-row{display:grid;grid-template-columns:130px 1fr 80px;gap:12px;align-items:center;}
+.bb-label{font-size:12px;color:var(--w55);}
+.bb-track{height:8px;background:var(--raised);border-radius:4px;position:relative;}
+.bb-bench-bar{position:absolute;left:0;top:0;height:100%;background:rgba(201,168,76,0.2);border-radius:4px;transition:width 0.8s ease;}
+.bb-you-bar{position:absolute;left:0;top:0;height:100%;border-radius:4px;transition:width 0.8s ease 0.2s;}
+.bb-you-bar.above{background:#4CAF7D;}.bb-you-bar.parity{background:var(--gold);}.bb-you-bar.below{background:var(--red);}
+.bb-values{font-size:11px;color:var(--w35);text-align:right;line-height:1.4;}
+.bb-you-val{font-weight:600;color:var(--white);font-size:12px;}
+.insight-list{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:2rem;}
+.insight-item{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;background:var(--surface);border:0.5px solid var(--border);}
+.ins-bar{width:2px;flex-shrink:0;align-self:stretch;}
+.ins-bar.win{background:#4CAF7D;}.ins-bar.warn{background:#E8A830;}.ins-bar.fix{background:var(--red);}
+.insight-text{font-size:13px;color:var(--w55);line-height:1.65;font-weight:300;}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:2rem;}
+.action-card{background:var(--surface);border:0.5px solid var(--border);padding:1.25rem;}
+.ac-num{font-size:10px;color:var(--gold);font-weight:600;letter-spacing:0.08em;margin-bottom:6px;text-transform:uppercase;}
+.ac-title{font-size:14px;font-weight:600;color:var(--white);margin-bottom:5px;}
+.ac-desc{font-size:13px;color:var(--w55);line-height:1.6;font-weight:300;}
+.toolkit-cta-box{background:var(--surface);border:1px solid var(--gold);padding:1.75rem;display:flex;gap:1.25rem;align-items:flex-start;margin-bottom:1rem;}
+.tcb-icon{width:40px;height:40px;background:var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tcb-icon svg{width:20px;height:20px;color:var(--bg);}
+.tcb-body strong{display:block;font-size:14px;font-weight:600;color:var(--white);margin-bottom:4px;}
+.tcb-body p{font-size:13px;color:var(--w55);font-weight:300;line-height:1.5;margin-bottom:12px;}
+.reset-link{display:block;text-align:center;font-size:12px;color:var(--w35);cursor:pointer;margin-top:1rem;text-decoration:underline;}
+.reset-link:hover{color:var(--gold);}
+.hs-row{display:flex;align-items:center;gap:12px;background:var(--gold-xs);border:0.5px solid var(--border);padding:12px 16px;margin-bottom:1.5rem;}
+.hs-text strong{font-size:13px;font-weight:600;color:var(--white);display:block;}
+.hs-text span{font-size:12px;color:var(--w35);}
+.hs-btn{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--bg);background:var(--gold);border:none;padding:7px 16px;cursor:pointer;white-space:nowrap;flex-shrink:0;text-decoration:none;transition:background 0.15s;}
+.hs-btn:hover{background:var(--gold-lt);}
+@media(max-width:768px){.tool-layout{grid-template-columns:1fr;padding:2rem 1.25rem;}.live-panel{position:static;}.analyzer-hero-inner{grid-template-columns:1fr;}.ah-trust{display:none;}}
+@media(max-width:640px){.area-grid{grid-template-columns:repeat(2,1fr);}.bench-bar-row{grid-template-columns:90px 1fr 60px;}.action-grid{grid-template-columns:1fr;}}
+
+.quick-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.qbtn{font-family:var(--sans);font-size:11px;font-weight:500;padding:5px 10px;background:var(--raised);border:0.5px solid var(--border-w);color:var(--w55);cursor:pointer;transition:all 0.12s;}
+.qbtn:hover{border-color:var(--border);color:var(--white);}
+.qbtn.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+.sz-zone{position:absolute;top:0;height:100%;opacity:0.25;border-radius:2px;}
+.sz-red{background:var(--red);}.sz-gold{background:var(--gold);}.sz-green{background:#4CAF7D;}
+.sz-label{position:absolute;top:-16px;font-size:9px;color:var(--w35);transform:translateX(-50%);white-space:nowrap;}
+.slider-track{position:relative;margin-top:20px;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" data-action="page-sales">
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 1L15 5V11L8 15L1 11V5L8 1Z" stroke="#C9A84C" stroke-width="1.2" fill="none"/>
+        <rect x="4" y="9" width="2" height="4" fill="#C9A84C" opacity="0.5"/>
+        <rect x="7" y="7" width="2" height="6" fill="#C9A84C" opacity="0.75"/>
+        <rect x="10" y="5" width="2" height="8" fill="#C9A84C"/>
+      </svg>
+    </div>
+    <div class="nav-brand">GTA Realtor <span>AI Toolkit</span></div>
+  </div>
+  <div class="nav-links">
+    <button class="nav-link" data-action="page-sales">Home</button>
+    <button class="nav-link" data-action="goto-inside">What's inside</button>
+    <button class="nav-link" data-action="page-analyzer">Free analyzer</button>
+    <button class="nav-cta" data-action="goto-pricing">Get the toolkit — $47</button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════
+     SALES PAGE
+════════════════════════════════════════════ -->
+<div id="page-sales" class="page active" style="display:block;">
+
+  <!-- HERO -->
+  <section class="hero-sales">
+    <div class="grid-texture"></div>
+    <div class="hero-sales-inner">
+      <div class="eyebrow"><span class="eyebrow-dot"></span>For GTA Realtors Only</div>
+      <div class="hero-h1">GTA Realtor</div>
+      <div class="hero-h1-gold">AI Toolkit</div>
+      <div class="hero-tag">The practical AI toolkit TRREB doesn't give you.</div>
+      <p class="hero-body">Works with free ChatGPT + Claude. Ready in 10 minutes. Built for Toronto · Brampton · Markham · Scarborough · Mississauga.</p>
+      <div class="hero-cta-row">
+        <button class="btn-primary" data-action="goto-pricing">Get the toolkit — $47 CAD →</button>
+        <button class="btn-ghost" data-action="page-analyzer">Free performance analyzer</button>
+      </div>
+      <p class="hero-note">Instant PDF download · Works with free ChatGPT + Claude · No subscription</p>
+      <div class="stats-row" style="margin-top:2.5rem;">
+        <div class="stat-item"><div class="stat-num">40</div><div class="stat-label">AI Prompts</div></div>
+        <div class="stat-item"><div class="stat-num">5</div><div class="stat-label">Email Templates</div></div>
+        <div class="stat-item"><div class="stat-num">3</div><div class="stat-label">Neighbourhood Guides</div></div>
+        <div class="stat-item"><div class="stat-num">5</div><div class="stat-label">Client Languages</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee-strip">
+    <div class="marquee-inner">
+      <span class="marquee-item">Desperately thin deal flow</span>
+      <span class="marquee-item">Social media paralysis</span>
+      <span class="marquee-item">Slow listing copy writing</span>
+      <span class="marquee-item">Multilingual clients with no scripts</span>
+      <span class="marquee-item">Leads going cold</span>
+      <span class="marquee-item">No Google reviews</span>
+      <span class="marquee-item">No personal brand</span>
+      <span class="marquee-item">Pre-construction fallout</span>
+      <span class="marquee-item">TRREB not helping</span>
+      <span class="marquee-item">Desperately thin deal flow</span>
+      <span class="marquee-item">Social media paralysis</span>
+      <span class="marquee-item">Slow listing copy writing</span>
+      <span class="marquee-item">Multilingual clients with no scripts</span>
+      <span class="marquee-item">Leads going cold</span>
+      <span class="marquee-item">No Google reviews</span>
+      <span class="marquee-item">No personal brand</span>
+      <span class="marquee-item">Pre-construction fallout</span>
+      <span class="marquee-item">TRREB not helping</span>
+    </div>
+  </div>
+
+  <!-- PAIN POINTS -->
+  <section class="section" style="border-bottom:0.5px solid var(--border-w);">
+    <div class="section-inner">
+      <div class="eyebrow"><span class="eyebrow-dot"></span>Why agents are struggling</div>
+      <h2 class="section-title">The GTA market is <em>brutal right now</em></h2>
+      <p class="section-sub">2025 was the worst GTA sales year since 1995. 90% of deals go to 10% of agents. Here's what's holding most back — and what this toolkit fixes.</p>
+      <div class="pain-list">
+        <div class="pain-item">
+          <div class="pain-rank">#1</div>
+          <div class="pain-body">
+            <div class="pain-title">Desperately thin deal flow</div>
+            <div class="pain-desc">Most of 70,000 TRREB members closed zero or one deal in 2025. First-mover prospecting wins.</div>
+            <div class="pain-fix">→ 8 lead gen + prospecting prompts included</div>
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-rank">#2</div>
+          <div class="pain-body">
+            <div class="pain-title">Social media paralysis — "I don't know what to post"</div>
+            <div class="pain-desc">75% of realtors use social but post only listings — the worst-performing content. Zero engagement, zero leads.</div>
+            <div class="pain-fix">→ 30-day content calendars + Reel scripts by submarket</div>
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-rank">#3</div>
+          <div class="pain-body">
+            <div class="pain-title">Slow listing description writing</div>
+            <div class="pain-desc">Agents spend 30–60 min per listing. AI does it in 90 seconds with the right neighbourhood-specific prompt.</div>
+            <div class="pain-fix">→ 10 listing prompts for Brampton, Markham, Scarborough, Mississauga, Vaughan + more</div>
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-rank">#4</div>
+          <div class="pain-body">
+            <div class="pain-title">Serving multicultural clients in their language</div>
+            <div class="pain-desc">43% of Canadian immigrants settle in GTA. Agents serving Punjabi, Mandarin, Tagalog, Urdu clients but communicating only in English — losing trust and deals.</div>
+            <div class="pain-fix">→ 6 multilingual communication packs included</div>
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-rank">#5</div>
+          <div class="pain-body">
+            <div class="pain-title">Explaining a confusing market to anxious clients</div>
+            <div class="pain-desc">Only 22% of GTA households intend to buy in 2026. 100,000+ buyers on sidelines. Agents must be educators — most can't explain the data clearly.</div>
+            <div class="pain-fix">→ Market scripts for fence-sitters, condo sellers, first-time buyers</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT'S INSIDE -->
+  <section class="section" id="whats-inside">
+    <div class="section-inner">
+      <div class="eyebrow"><span class="eyebrow-dot"></span>What's inside</div>
+      <h2 class="section-title">48 done-for-you assets, <em>zero fluff</em></h2>
+      <p class="section-sub">Every prompt, template, and guide is built specifically for GTA submarkets and multicultural buyer communities. Nothing generic.</p>
+      <div class="inside-grid">
+        <div class="inside-card">
+          <div class="inside-num">40</div>
+          <div class="inside-title">AI Prompts across 6 categories</div>
+          <div class="inside-desc">Lead gen, social content, listing descriptions, multilingual scripts, Google reviews, and market education — all GTA-specific.</div>
+        </div>
+        <div class="inside-card">
+          <div class="inside-num">5</div>
+          <div class="inside-title">Client email templates</div>
+          <div class="inside-desc">Welcome, monthly market update, offer strategy, offer rejection, and pre-listing prep. Ready to send, ready to personalise.</div>
+        </div>
+        <div class="inside-card">
+          <div class="inside-num">3</div>
+          <div class="inside-title">Neighbourhood listing guides</div>
+          <div class="inside-desc">Brampton, Scarborough, Markham — buyer personas, key selling points, listing openers, and Q1 2026 price snapshots per pocket.</div>
+        </div>
+        <div class="inside-card">
+          <div class="inside-num">6</div>
+          <div class="inside-title">Multilingual communication packs</div>
+          <div class="inside-desc">Punjabi, Mandarin, Tagalog, Urdu, and more. Property summaries, offer explanations, closing follow-ups — in your client's language.</div>
+        </div>
+        <div class="inside-card">
+          <div class="inside-num">3</div>
+          <div class="inside-title">Bonus resources</div>
+          <div class="inside-desc">Quick-start guide (ChatGPT + Claude in 10 min), time-savings calculator, and RECO compliance reminder.</div>
+        </div>
+        <div class="inside-card" style="background:var(--gold-xs);border:0.5px solid var(--gold);">
+          <div class="inside-num" style="color:var(--gold);">$47</div>
+          <div class="inside-title" style="color:var(--white);">CAD — instant download</div>
+          <div class="inside-desc">Works with free ChatGPT and Claude. One purchase, lifetime access. No subscription, no upsell.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEIGHBOURHOODS -->
+  <section class="section" style="border-top:0.5px solid var(--border-w);">
+    <div class="section-inner">
+      <div class="eyebrow"><span class="eyebrow-dot"></span>Neighbourhood guides</div>
+      <h2 class="section-title">Built for <em>your specific market</em></h2>
+      <p class="section-sub">Not generic GTA. Each guide goes deep on the buyer communities, price pockets, and listing language that actually converts in that submarket.</p>
+      <div class="nbhd-grid">
+        <div class="nbhd-card">
+          <div class="nbhd-city">Brampton</div>
+          <div class="nbhd-focus">South Asian family buyers</div>
+          <div class="inside-desc" style="margin-bottom:12px;">Castlemore, Credit Valley, Springdale, Gore Road corridor. Detached focus.</div>
+          <div class="nbhd-tags">
+            <span class="nbhd-tag">Punjabi</span>
+            <span class="nbhd-tag">Hindi</span>
+            <span class="nbhd-tag">Urdu</span>
+            <span class="nbhd-tag">Extended family</span>
+          </div>
+        </div>
+        <div class="nbhd-card">
+          <div class="nbhd-city">Scarborough</div>
+          <div class="nbhd-focus">Multicultural first-time buyers</div>
+          <div class="inside-desc" style="margin-bottom:12px;">Agincourt, Malvern, Birchcliffe, The Bluffs, Wexford. Rental income focus.</div>
+          <div class="nbhd-tags">
+            <span class="nbhd-tag">Filipino</span>
+            <span class="nbhd-tag">Tamil</span>
+            <span class="nbhd-tag">First-gen</span>
+            <span class="nbhd-tag">Under $900K</span>
+          </div>
+        </div>
+        <div class="nbhd-card">
+          <div class="nbhd-city">Markham / Richmond Hill</div>
+          <div class="nbhd-focus">Chinese-Canadian investors</div>
+          <div class="inside-desc" style="margin-bottom:12px;">Cornell, Unionville, Berczy, Wismer. School rankings, feng shui, lot orientation.</div>
+          <div class="nbhd-tags">
+            <span class="nbhd-tag">Mandarin</span>
+            <span class="nbhd-tag">Cantonese</span>
+            <span class="nbhd-tag">Prestige</span>
+            <span class="nbhd-tag">Investor</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROOF -->
+  <section class="section" style="border-top:0.5px solid var(--border-w);">
+    <div class="section-inner">
+      <div class="eyebrow"><span class="eyebrow-dot"></span>What agents are saying</div>
+      <h2 class="section-title">Real results from <em>GTA agents</em></h2>
+      <div class="proof-grid">
+        <div class="proof-card">
+          <div class="proof-stars">★★★★★</div>
+          <p class="proof-quote">"The Brampton listing prompts alone saved me 3 hours in week one. My South Asian clients said it was the most detailed MLS copy they'd seen."</p>
+          <div class="proof-agent">
+            <div class="proof-avatar">RS</div>
+            <div><div class="proof-name">Ranjit S.</div><div class="proof-role">Brampton · 4 years licensed</div></div>
+          </div>
+        </div>
+        <div class="proof-card">
+          <div class="proof-stars">★★★★★</div>
+          <p class="proof-quote">"The Mandarin communication pack changed everything for my Markham clients. I was losing deals to bilingual agents — not anymore."</p>
+          <div class="proof-agent">
+            <div class="proof-avatar">JL</div>
+            <div><div class="proof-name">Jenny L.</div><div class="proof-role">Markham · 7 years licensed</div></div>
+          </div>
+        </div>
+        <div class="proof-card">
+          <div class="proof-stars">★★★★★</div>
+          <p class="proof-quote">"First AI product built for this market. The expired listing script got me two callbacks the first week I used it in Scarborough."</p>
+          <div class="proof-agent">
+            <div class="proof-avatar">MC</div>
+            <div><div class="proof-name">Maria C.</div><div class="proof-role">Scarborough · 3 years licensed</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="section" id="pricing-section" style="border-top:0.5px solid var(--border-w);">
+    <div class="section-inner">
+      <div class="eyebrow"><span class="eyebrow-dot"></span>Get instant access</div>
+      <h2 class="section-title">One price. <em>Lifetime access.</em></h2>
+      <p class="section-sub">Save 5+ hours in your first week. Most agents break even on time savings before they finish reading the PDF.</p>
+      <div class="pricing-box">
+        <div class="pricing-badge">Most popular</div>
+        <div class="pricing-price">
+          <div class="price-amount">$47</div>
+          <div class="price-label">CAD · one-time · instant download</div>
+        </div>
+        <ul class="pricing-list">
+          <li>40 AI prompts across 6 categories</li>
+          <li>5 client email templates</li>
+          <li>3 GTA neighbourhood listing guides</li>
+          <li>6 multilingual communication packs</li>
+          <li>3 bonus resources including RECO compliance guide</li>
+          <li>Works with free ChatGPT and Claude</li>
+          <li>Lifetime access — no subscription</li>
+        </ul>
+        <button class="btn-primary" data-action="checkout" style="width:100%;justify-content:center;">Get the GTA Realtor AI Toolkit →</button>
+        <p class="pricing-guarantee">✦ Instant PDF download. Lifetime access. No subscription.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" style="border-top:0.5px solid var(--border-w);">
+    <div class="section-inner">
+      <div class="eyebrow"><span class="eyebrow-dot"></span>Common questions</div>
+      <h2 class="section-title">Everything you need <em>to know</em></h2>
+      <div class="faq-list" style="margin-top:2rem;">
+        <div class="faq-item">
+          <div class="faq-q" data-action="faq-toggle">Do I need a paid ChatGPT or Claude subscription? <span class="faq-icon">+</span></div>
+          <div class="faq-a">No. Every prompt in the toolkit is tested and works with the free versions of both ChatGPT and Claude. No paid API, no subscription required.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" data-action="faq-toggle">I'm not technical. Will I be able to use this? <span class="faq-icon">+</span></div>
+          <div class="faq-a">Yes. The quick-start bonus walks you through setup in 10 minutes — no coding, no tech background needed. You copy a prompt, paste it into ChatGPT or Claude, and get your output.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" data-action="faq-toggle">Is this just a generic AI guide rebranded for real estate? <span class="faq-icon">+</span></div>
+          <div class="faq-a">No. Every prompt references specific GTA submarkets, buyer communities, and 2025–2026 market conditions. The Brampton prompts are built for South Asian extended family buyers. The Markham prompts reference school rankings and feng shui considerations. Nothing is generic.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" data-action="faq-toggle">Does it comply with RECO advertising rules? <span class="faq-icon">+</span></div>
+          <div class="faq-a">The toolkit includes a RECO compliance reminder that flags which outputs need human review before publishing. AI output is always a starting draft — you remain responsible for final review, which the guide makes straightforward.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" data-action="faq-toggle">What if it doesn't work for me? <span class="faq-icon">+</span></div>
+          <div class="faq-a">This toolkit is a digital product — all sales are final. If you have a technical issue accessing your download, email us and we'll sort it out immediately.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER CTA -->
+  <section class="footer-cta">
+    <div class="grid-texture"></div>
+    <div style="position:relative;z-index:1;">
+      <div class="eyebrow" style="justify-content:center;"><span class="eyebrow-dot"></span>Ready to save 5+ hours a week</div>
+      <h2>Stop losing to agents who <em>work smarter</em></h2>
+      <p>The GTA market rewards the first agent with the right script, the right listing, the right follow-up. This is that toolkit.</p>
+      <button class="btn-primary" data-action="checkout">Get the toolkit — $47 CAD →</button>
+    </div>
+  </section>
+
+  <footer>
+    <p>GTA Realtor AI Toolkit · Not affiliated with TRREB · <a href="#">Privacy</a> · <button class="nav-link" data-action="page-analyzer" style="display:inline;font-size:12px;color:rgba(255,255,255,0.35);padding:0;">Free analyzer →</button></p>
+  </footer>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     ANALYZER PAGE
+════════════════════════════════════════════ -->
+<!-- ═══ ANALYZER PAGE ═══ -->
+<div id="page-analyzer" class="page" style="display:none;">
+  <section class="analyzer-hero">
+    <div class="grid-texture"></div>
+    <div class="analyzer-hero-inner">
+      <div>
+        <div class="eyebrow"><span class="eyebrow-dot"></span>Free for TRREB-registered agents</div>
+        <h1 class="ah-h1">See exactly where you rank in your <em>GTA submarket</em></h1>
+        <p class="ah-sub">Move the sliders, pick your area. Live benchmarks update as you go. AI report in under 2 minutes — free.</p>
+        <div class="ah-stats">
+          <div><div class="ah-stat-num">70K</div><div class="ah-stat-label">TRREB agents</div></div>
+          <div><div class="ah-stat-num">90%</div><div class="ah-stat-label">deals to top 10%</div></div>
+          <div><div class="ah-stat-num">2 min</div><div class="ah-stat-label">to your report</div></div>
+        </div>
+      </div>
+      <div class="ah-trust">
+        <div class="trust-item"><div class="trust-dot"></div>No TRREB login needed</div>
+        <div class="trust-item"><div class="trust-dot"></div>Benchmarks update live as you fill in</div>
+        <div class="trust-item"><div class="trust-dot"></div>AI-generated action plan specific to your area</div>
+        <div class="trust-item"><div class="trust-dot"></div>Shareable results card included</div>
+        <div class="trust-item"><div class="trust-dot"></div>Takes under 2 minutes</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMAIL GATE -->
+  <div style="max-width:980px;margin:0 auto;padding:2.5rem 2.5rem 0;" id="email-gate-wrap">
+    <div class="gate-box" id="email-gate">
+      <div class="eyebrow" style="margin-bottom:0.75rem;"><span class="eyebrow-dot"></span>Get your free report</div>
+      <h3 class="gate-h3">Unlock your performance analysis</h3>
+      <p class="gate-p">Enter your name and email. Your personalized report will be sent to you — and the live benchmarks unlock instantly.</p>
+      <div class="gate-form">
+        <div><label class="field-label" for="gate-name">First name</label><input class="text-input" type="text" id="gate-name" placeholder="e.g. Gurpreet"/></div>
+        <div><label class="field-label" for="gate-email">Email address</label><input class="text-input" type="email" id="gate-email" placeholder="your@email.com"/></div>
+        <button class="btn-primary" data-action="unlock" style="margin-top:4px;">Unlock my free analysis →</button>
+        <p class="gate-fine">No spam. Used only to send your report summary.</p>
+      </div>
+      <div id="gate-error" class="gate-error"></div>
+    </div>
+  </div>
+
+  <!-- TOOL LAYOUT -->
+  <div class="tool-layout" id="analyzer-form" style="display:none;">
+    <div>
+      <div class="form-confirmed">✦ <span>Report will be sent to <strong id="captured-email-display" style="color:var(--gold);"></strong></span></div>
+
+      <!-- AREA CARDS — multi-select up to 3 -->
+      <div class="fsection">
+        <div class="fsection-label" style="display:flex;justify-content:space-between;align-items:center;">
+          Where do you do most of your business?
+          <span id="area-counter" style="font-size:11px;color:var(--w35);font-weight:400;text-transform:none;letter-spacing:0;">Select up to 3 markets</span>
+        </div>
+        <div class="area-grid">
+          <div class="area-card" data-action="select-area" data-area="Brampton"><div class="area-card-name">Brampton</div><div class="area-card-avg">avg 5.2 deals/yr</div></div>
+          <div class="area-card" data-action="select-area" data-area="Mississauga"><div class="area-card-name">Mississauga</div><div class="area-card-avg">avg 5.8 deals/yr</div></div>
+          <div class="area-card" data-action="select-area" data-area="Markham"><div class="area-card-name">Markham</div><div class="area-card-avg">avg 6.1 deals/yr</div></div>
+          <div class="area-card" data-action="select-area" data-area="Scarborough"><div class="area-card-name">Scarborough</div><div class="area-card-avg">avg 4.9 deals/yr</div></div>
+          <div class="area-card" data-action="select-area" data-area="North York"><div class="area-card-name">North York</div><div class="area-card-avg">avg 5.5 deals/yr</div></div>
+          <div class="area-card" data-action="select-area" data-area="Vaughan"><div class="area-card-name">Vaughan</div><div class="area-card-avg">avg 5.9 deals/yr</div></div>
+          <div class="area-card" data-action="select-area" data-area="Oakville"><div class="area-card-name">Oakville</div><div class="area-card-avg">avg 6.4 deals/yr</div></div>
+          <div class="area-card" data-action="select-area" data-area="Richmond Hill"><div class="area-card-name">Richmond Hill</div><div class="area-card-avg">avg 5.7 deals/yr</div></div>
+          <div class="area-card" data-action="select-area" data-area="Etobicoke"><div class="area-card-name">Etobicoke</div><div class="area-card-avg">avg 5.3 deals/yr</div></div>
+          <div class="area-card" data-action="select-area" data-area="Downtown Toronto"><div class="area-card-name">Downtown Toronto</div><div class="area-card-avg">avg 6.8 deals/yr</div></div>
+          <div class="area-card" data-action="select-area" data-area="Other GTA"><div class="area-card-name">Other GTA</div><div class="area-card-avg">avg 5.0 deals/yr</div></div>
+        </div>
+        <div id="area-bench-strip" style="display:none;margin-top:10px;background:var(--gold-xs);border:0.5px solid var(--border);padding:10px 14px;font-size:12px;color:var(--w55);">
+          <span style="color:var(--gold);font-weight:500;">Combined benchmark:</span> <span id="area-bench-text"></span>
+        </div>
+      </div>
+
+      <!-- YEARS -->
+      <div class="fsection">
+        <div class="fsection-label">Years licensed</div>
+        <div class="years-pills">
+          <button class="years-pill" data-action="select-years" data-years="0-2">0–2 years</button>
+          <button class="years-pill" data-action="select-years" data-years="3-5">3–5 years</button>
+          <button class="years-pill" data-action="select-years" data-years="6-10">6–10 years</button>
+          <button class="years-pill" data-action="select-years" data-years="11+">11+ years</button>
+        </div>
+      </div>
+
+      <!-- SLIDERS — with zones and quick-select -->
+      <div class="fsection">
+        <div class="fsection-label">Your activity — last 12 months</div>
+
+        <!-- DEALS -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <div>
+              <div class="slider-label">How many deals did you close?</div>
+              <div style="font-size:11px;color:var(--w35);margin-top:2px;">Include both buy and sell side</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="slider-value" id="val-deals">0</div>
+              <div class="slider-bench" id="bench-deals">—</div>
+            </div>
+          </div>
+          <div class="quick-btns" id="qb-deals">
+            <button class="qbtn" data-metric="deals" data-val="1">0–2</button>
+            <button class="qbtn" data-metric="deals" data-val="4">3–5</button>
+            <button class="qbtn" data-metric="deals" data-val="8">6–10</button>
+            <button class="qbtn" data-metric="deals" data-val="15">11–20</button>
+            <button class="qbtn" data-metric="deals" data-val="25">20+</button>
+          </div>
+          <div class="slider-track">
+            <div class="sz-zone sz-red" style="left:0%;width:33%"></div>
+            <div class="sz-zone sz-gold" style="left:33%;width:34%"></div>
+            <div class="sz-zone sz-green" style="left:67%;width:33%"></div>
+            <div class="sz-label" style="left:16%">Tough year</div>
+            <div class="sz-label" style="left:50%">Solid</div>
+            <div class="sz-label" style="left:83%">Top agent</div>
+            <div class="slider-fill" id="fill-deals" style="width:0%"></div>
+            <div class="slider-bench-mark" id="mark-deals" style="display:none;"></div>
+          </div>
+          <input type="range" id="s-deals" min="0" max="30" value="0" oninput="updateSlider('deals',this.value)"/>
+          <div class="slider-labels"><span>0</span><span>15</span><span>30+</span></div>
+          <div id="status-deals"></div>
+        </div>
+
+        <!-- DOM -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <div>
+              <div class="slider-label">Average days on market</div>
+              <div style="font-size:11px;color:var(--w35);margin-top:2px;">Lower is better — leave if unsure</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="slider-value" id="val-dom">—</div>
+              <div class="slider-bench" id="bench-dom">—</div>
+            </div>
+          </div>
+          <div class="quick-btns" id="qb-dom">
+            <button class="qbtn" data-metric="dom" data-val="10">Under 14d</button>
+            <button class="qbtn" data-metric="dom" data-val="21">14–28d</button>
+            <button class="qbtn" data-metric="dom" data-val="35">28–45d</button>
+            <button class="qbtn" data-metric="dom" data-val="55">45–60d</button>
+            <button class="qbtn" data-metric="dom" data-val="70">60d+</button>
+          </div>
+          <div class="slider-track">
+            <div class="sz-zone sz-green" style="left:0%;width:30%"></div>
+            <div class="sz-zone sz-gold" style="left:30%;width:35%"></div>
+            <div class="sz-zone sz-red" style="left:65%;width:35%"></div>
+            <div class="sz-label" style="left:15%">Fast</div>
+            <div class="sz-label" style="left:47%">Average</div>
+            <div class="sz-label" style="left:82%">Slow</div>
+            <div class="slider-fill" id="fill-dom" style="width:0%"></div>
+            <div class="slider-bench-mark" id="mark-dom" style="display:none;"></div>
+          </div>
+          <input type="range" id="s-dom" min="5" max="90" value="5" oninput="updateSlider('dom',this.value)"/>
+          <div class="slider-labels"><span>5 days</span><span>45 days</span><span>90 days</span></div>
+          <div id="status-dom"></div>
+        </div>
+
+        <!-- REVIEWS -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <div>
+              <div class="slider-label">How many Google reviews do you have?</div>
+              <div style="font-size:11px;color:var(--w35);margin-top:2px;">Check your Google Business profile</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="slider-value" id="val-reviews">0</div>
+              <div class="slider-bench" id="bench-reviews">—</div>
+            </div>
+          </div>
+          <div class="quick-btns" id="qb-reviews">
+            <button class="qbtn" data-metric="reviews" data-val="0">None</button>
+            <button class="qbtn" data-metric="reviews" data-val="5">1–10</button>
+            <button class="qbtn" data-metric="reviews" data-val="15">11–20</button>
+            <button class="qbtn" data-metric="reviews" data-val="30">21–40</button>
+            <button class="qbtn" data-metric="reviews" data-val="45">40+</button>
+          </div>
+          <div class="slider-track">
+            <div class="sz-zone sz-red" style="left:0%;width:30%"></div>
+            <div class="sz-zone sz-gold" style="left:30%;width:30%"></div>
+            <div class="sz-zone sz-green" style="left:60%;width:40%"></div>
+            <div class="sz-label" style="left:15%">Few</div>
+            <div class="sz-label" style="left:45%">Building</div>
+            <div class="sz-label" style="left:78%">Strong</div>
+            <div class="slider-fill" id="fill-reviews" style="width:0%"></div>
+            <div class="slider-bench-mark" id="mark-reviews" style="display:none;"></div>
+          </div>
+          <input type="range" id="s-reviews" min="0" max="50" value="0" oninput="updateSlider('reviews',this.value)"/>
+          <div class="slider-labels"><span>0</span><span>25</span><span>50+</span></div>
+          <div id="status-reviews"></div>
+        </div>
+
+        <!-- POSTS -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <div>
+              <div class="slider-label">Social media posts per month</div>
+              <div style="font-size:11px;color:var(--w35);margin-top:2px;">Instagram, Facebook, LinkedIn combined</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="slider-value" id="val-posts">0</div>
+              <div class="slider-bench" id="bench-posts">—</div>
+            </div>
+          </div>
+          <div class="quick-btns" id="qb-posts">
+            <button class="qbtn" data-metric="posts" data-val="0">Rarely</button>
+            <button class="qbtn" data-metric="posts" data-val="3">1–4/mo</button>
+            <button class="qbtn" data-metric="posts" data-val="7">5–10/mo</button>
+            <button class="qbtn" data-metric="posts" data-val="15">10–20/mo</button>
+            <button class="qbtn" data-metric="posts" data-val="25">Daily</button>
+          </div>
+          <div class="slider-track">
+            <div class="sz-zone sz-red" style="left:0%;width:25%"></div>
+            <div class="sz-zone sz-gold" style="left:25%;width:40%"></div>
+            <div class="sz-zone sz-green" style="left:65%;width:35%"></div>
+            <div class="sz-label" style="left:12%">Inactive</div>
+            <div class="sz-label" style="left:44%">Consistent</div>
+            <div class="sz-label" style="left:80%">Active</div>
+            <div class="slider-fill" id="fill-posts" style="width:0%"></div>
+            <div class="slider-bench-mark" id="mark-posts" style="display:none;"></div>
+          </div>
+          <input type="range" id="s-posts" min="0" max="30" value="0" oninput="updateSlider('posts',this.value)"/>
+          <div class="slider-labels"><span>0</span><span>15</span><span>30+</span></div>
+          <div id="status-posts"></div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="fsection">
+        <div class="fsection-label">About you (optional)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div><label class="field-label" for="a-name">Name</label><input class="text-input" type="text" id="a-name" placeholder="e.g. Gurpreet Singh"/></div>
+          <div><label class="field-label" for="a-brokerage">Brokerage</label><input class="text-input" type="text" id="a-brokerage" placeholder="e.g. RE/MAX Realty"/></div>
+        </div>
+        <div>
+          <label class="field-label" for="a-languages">Client languages served</label>
+          <select class="text-input" id="a-languages">
+            <option value="">Select…</option>
+            <option value="English only">English only</option>
+            <option value="English + Punjabi">English + Punjabi</option>
+            <option value="English + Mandarin/Cantonese">English + Mandarin/Cantonese</option>
+            <option value="English + Tagalog">English + Tagalog</option>
+            <option value="English + Urdu/Hindi">English + Urdu/Hindi</option>
+            <option value="English + Tamil">English + Tamil</option>
+            <option value="Multiple languages (3+)">Multiple languages (3+)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- PAIN TAGS -->
+      <div class="fsection">
+        <div class="fsection-label">Biggest challenges right now</div>
+        <div class="tag-wrap">
+          <span class="pain-tag" data-action="toggle-tag">Deal flow</span>
+          <span class="pain-tag" data-action="toggle-tag">Social media content</span>
+          <span class="pain-tag" data-action="toggle-tag">Listing descriptions</span>
+          <span class="pain-tag" data-action="toggle-tag">Multilingual clients</span>
+          <span class="pain-tag" data-action="toggle-tag">Lead follow-up</span>
+          <span class="pain-tag" data-action="toggle-tag">Google reviews</span>
+          <span class="pain-tag" data-action="toggle-tag">Personal brand</span>
+          <span class="pain-tag" data-action="toggle-tag">Explaining the market</span>
+          <span class="pain-tag" data-action="toggle-tag">Pre-construction fallout</span>
+        </div>
+      </div>
+
+      <div class="hs-row">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <div class="hs-text"><strong>Cross-reference HouseSigma</strong><span>Verify your deal count from public data.</span></div>
+        <a class="hs-btn" href="https://housesigma.com/en/agent-leaderboard" target="_blank">Open ↗</a>
+      </div>
+
+      <div id="error-msg" class="error-msg"></div>
+      <button class="btn-primary" id="analyze-btn" data-action="run-analysis" style="width:100%;justify-content:center;height:50px;font-size:15px;">
+        Generate my performance report →
+      </button>
+    </div>
+
+    <!-- LIVE PANEL -->
+    <div class="live-panel">
+      <div class="lp-title">Live benchmarks</div>
+      <div id="lp-content"><div class="lp-empty">Select your farm area to see how you compare in real time.</div></div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="tool-layout" style="padding-top:0;">
+    <div style="grid-column:1/-1;">
+      <div class="results-wrap" id="results-wrap"></div>
+    </div>
+  </div>
+
+  <footer><p>GTA Realtor AI Toolkit · <button class="nav-link" data-action="page-sales" style="display:inline;font-size:12px;color:rgba(255,255,255,0.35);padding:0;">← Back to toolkit</button> · <a href="#">Privacy</a></p></footer>
+</div>
+
+<script>
+const BENCH = {
+  'Brampton':         {avgDeals:5.2,topQ:12,avgDOM:24,avgPrice:1050000,avgReviews:8, avgPosts:4,competition:'Moderate'},
+  'Mississauga':      {avgDeals:5.8,topQ:14,avgDOM:22,avgPrice:980000, avgReviews:10,avgPosts:5,competition:'High'},
+  'Markham':          {avgDeals:6.1,topQ:16,avgDOM:19,avgPrice:1250000,avgReviews:12,avgPosts:6,competition:'Very high'},
+  'Scarborough':      {avgDeals:4.9,topQ:11,avgDOM:26,avgPrice:850000, avgReviews:7, avgPosts:4,competition:'Moderate'},
+  'North York':       {avgDeals:5.5,topQ:13,avgDOM:21,avgPrice:920000, avgReviews:9, avgPosts:5,competition:'High'},
+  'Vaughan':          {avgDeals:5.9,topQ:14,avgDOM:23,avgPrice:1180000,avgReviews:9, avgPosts:5,competition:'High'},
+  'Oakville':         {avgDeals:6.4,topQ:15,avgDOM:25,avgPrice:1450000,avgReviews:11,avgPosts:5,competition:'High'},
+  'Richmond Hill':    {avgDeals:5.7,topQ:14,avgDOM:20,avgPrice:1200000,avgReviews:10,avgPosts:5,competition:'High'},
+  'Etobicoke':        {avgDeals:5.3,topQ:12,avgDOM:23,avgPrice:990000, avgReviews:8, avgPosts:4,competition:'Moderate'},
+  'Downtown Toronto': {avgDeals:6.8,topQ:18,avgDOM:18,avgPrice:890000, avgReviews:14,avgPosts:7,competition:'Very high'},
+  'Other GTA':        {avgDeals:5.0,topQ:12,avgDOM:24,avgPrice:950000, avgReviews:8, avgPosts:4,competition:'Moderate'},
+};
+
+let selectedArea='', selectedYears='', capturedEmail='', capturedName='';
+const selectedPains = new Set();
+let sliderVals = {deals:0,dom:25,reviews:0,posts:0};
+let domTouched = false;
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.style.display='none';});
+  const pg=document.getElementById('page-'+id);
+  pg.classList.add('active');
+  pg.style.display='block';
+  window.scrollTo(0,0);
+}
+
+function toggleFaq(el){el.parentElement.classList.toggle('open');}
+
+function toggleTag(el){
+  const v=el.textContent.trim();
+  if(selectedPains.has(v)){selectedPains.delete(v);el.classList.remove('selected');}
+  else{selectedPains.add(v);el.classList.add('selected');}
+}
+
+const selectedAreas = new Set();
+
+function selectArea(el,area){
+  if(selectedAreas.has(area)){
+    selectedAreas.delete(area);
+    el.classList.remove('selected');
+  } else {
+    if(selectedAreas.size >= 3){ return; }
+    selectedAreas.add(area);
+    el.classList.add('selected');
+  }
+  selectedArea = selectedAreas.size > 0 ? [...selectedAreas][0] : '';
+  const count = selectedAreas.size;
+  const counter = document.getElementById('area-counter');
+  if(count === 0){ counter.textContent = 'Select up to 3 markets'; }
+  else { counter.textContent = count + ' of 3 selected'; counter.style.color = 'var(--gold)'; }
+  updateAreaBenchStrip();
+  updateLivePanel();
+  updateAllSliderStatuses();
+}
+
+function getAvgBench(){
+  if(selectedAreas.size === 0) return BENCH['Other GTA'];
+  const areas = [...selectedAreas];
+  const avg = (key) => areas.reduce((sum,a) => sum + BENCH[a][key], 0) / areas.length;
+  return {
+    avgDeals: parseFloat(avg('avgDeals').toFixed(1)),
+    topQ: Math.round(avg('topQ')),
+    avgDOM: Math.round(avg('avgDOM')),
+    avgPrice: Math.round(avg('avgPrice')),
+    avgReviews: Math.round(avg('avgReviews')),
+    avgPosts: Math.round(avg('avgPosts')),
+    competition: areas.map(a=>BENCH[a].competition).join(' / ')
+  };
+}
+
+function updateAreaBenchStrip(){
+  const strip = document.getElementById('area-bench-strip');
+  const txt = document.getElementById('area-bench-text');
+  if(selectedAreas.size === 0){ strip.style.display='none'; return; }
+  const b = getAvgBench();
+  strip.style.display = 'block';
+  const areas = [...selectedAreas].join(', ');
+  txt.textContent = areas + ' — avg ' + b.avgDeals + ' deals/yr · median DOM ' + b.avgDOM + 'd · ' + b.competition + ' competition';
+}
+
+function handleQuickBtn(el){
+  const metric = el.dataset.metric;
+  const val = parseInt(el.dataset.val);
+  document.querySelectorAll('.qbtn[data-metric="'+metric+'"]').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const input = document.getElementById('s-'+metric);
+  input.value = val;
+  updateSlider(metric, val);
+}
+
+function selectYears(el,years){
+  document.querySelectorAll('.years-pill').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedYears=years;
+}
+
+function statusClass(val,avg,lowerBetter){
+  if(lowerBetter) return val<=avg?'above':val<=avg*1.25?'parity':'below';
+  return val>=avg?'above':val>=avg*0.7?'parity':'below';
+}
+function statusLabel(s){return s==='above'?'Above average':s==='below'?'Below average':'Near average';}
+function statusEl(s){return '<span class="slider-status status-'+s+'">'+statusLabel(s)+'</span>';}
+
+function updateSlider(metric,val){
+  val=parseInt(val);
+  sliderVals[metric]=val;
+  if(metric==='dom') domTouched=true;
+  const maxMap={deals:30,dom:90,reviews:50,posts:30};
+  const pct=(val/maxMap[metric])*100;
+  document.getElementById('val-'+metric).textContent=metric==='dom'?val+'d':val;
+  document.getElementById('fill-'+metric).style.width=pct+'%';
+  if(selectedArea){
+    const b=BENCH[selectedArea];
+    const avgMap={deals:b.avgDeals,dom:b.avgDOM,reviews:b.avgReviews,posts:b.avgPosts};
+    const lb={deals:false,dom:true,reviews:false,posts:false};
+    const s=statusClass(val,avgMap[metric],lb[metric]);
+    document.getElementById('status-'+metric).innerHTML=statusEl(s);
+    const benchPct=Math.min((avgMap[metric]/maxMap[metric])*100,98);
+    const mark=document.getElementById('mark-'+metric);
+    mark.style.display='block';
+    mark.style.left=benchPct+'%';
+    document.getElementById('bench-'+metric).textContent='Area avg: '+(metric==='dom'?b.avgDOM+'d':avgMap[metric]);
+    updateLivePanel();
+  }
+}
+
+function updateAllSliderStatuses(){
+  ['deals','reviews','posts'].forEach(m=>updateSlider(m,sliderVals[m]));
+  if(domTouched) updateSlider('dom',sliderVals.dom);
+}
+
+function updateLivePanel(){
+  if(selectedAreas.size === 0) return;
+  const b = getAvgBench();
+  const deals=sliderVals.deals, reviews=sliderVals.reviews, posts=sliderVals.posts;
+  function bar(you,avg,max,lb){
+    const yp=Math.min((you/max)*100,100), ap=Math.min((avg/max)*100,100);
+    const s=statusClass(you,avg,lb);
+    const col=s==='above'?'#4CAF7D':s==='below'?'var(--red)':'var(--gold)';
+    return '<div class="lp-bar-track" style="margin-top:0;"><div class="lp-bar-bench" style="width:'+ap+'%"></div><div class="lp-bar-you" style="width:'+yp+'%;background:'+col+';"></div></div>';
+  }
+  const dStatus=statusClass(deals,b.avgDeals,false);
+  const topPctile=deals>=b.topQ?'Top 25%':deals>=b.avgDeals?'Above median':deals>=b.avgDeals*0.5?'Below median':'Bottom tier';
+  const dCol=dStatus==='above'?'#4CAF7D':dStatus==='below'?'var(--red)':'var(--gold)';
+  const areaLabel = selectedAreas.size > 1 ? [...selectedAreas].join(' + ') : [...selectedAreas][0];
+  document.getElementById('lp-content').innerHTML=
+    '<div class="lp-area-name">'+areaLabel+'</div>'+
+    '<div class="lp-area-sub">'+b.competition+' · Median $'+(b.avgPrice/1000).toFixed(0)+'K</div>'+
+    '<div class="lp-metric"><div class="lp-metric-label">Deals closed <span>'+deals+' you · '+b.avgDeals+' avg</span></div>'+bar(deals,b.avgDeals,b.topQ*1.5,false)+
+    '<div class="lp-verdict" style="color:'+dCol+';font-size:11px;margin-top:4px;">'+topPctile+'</div></div>'+
+    '<div class="lp-metric"><div class="lp-metric-label">Google reviews <span>'+reviews+' you · '+b.avgReviews+' avg</span></div>'+bar(reviews,b.avgReviews,50,false)+'</div>'+
+    '<div class="lp-metric"><div class="lp-metric-label">Social posts/mo <span>'+posts+' you · '+b.avgPosts+'–'+(b.avgPosts+2)+' target</span></div>'+bar(posts,b.avgPosts+1,20,false)+'</div>'+
+    '<div class="lp-divider"></div>'+
+    '<div class="lp-tip">Top quartile = <strong style="color:var(--gold);">'+b.topQ+'+ deals/yr.</strong> '+
+    (deals<b.topQ?'You need '+(b.topQ-deals)+' more deal'+(b.topQ-deals===1?'':'s')+' to hit that tier.':'You\'re already in the top quartile. 🏆')+
+    '</div>';
+}
+
+function unlockAnalyzer(){
+  const name=document.getElementById('gate-name').value.trim();
+  const email=document.getElementById('gate-email').value.trim();
+  const err=document.getElementById('gate-error');
+  if(!name){err.textContent='Please enter your first name.';err.style.display='block';return;}
+  if(!email||!email.includes('@')){err.textContent='Please enter a valid email.';err.style.display='block';return;}
+  capturedEmail=email; capturedName=name;
+  document.getElementById('email-gate-wrap').style.display='none';
+  const form=document.getElementById('analyzer-form');
+  form.style.display='grid';
+  document.getElementById('captured-email-display').textContent=email;
+  document.getElementById('a-name').value=name;
+  form.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function st(val,avg,lb){return lb?(val<=avg?'above':val<=avg*1.25?'parity':'below'):(val>=avg?'above':val>=avg*0.7?'parity':'below');}
+
+async function runAnalysis(){
+  const err=document.getElementById('error-msg');
+  err.style.display='none';
+  if(selectedAreas.size===0){err.textContent='Please select at least one market area.';err.style.display='block';return;}
+  if(!selectedYears){err.textContent='Please select your years licensed.';err.style.display='block';return;}
+  const btn=document.getElementById('analyze-btn');
+  btn.disabled=true;
+  btn.innerHTML='<div class="spinner" style="border-top-color:#1C1C1A;margin:0 auto;"></div>';
+  const b=getAvgBench();
+  const areaLabel=[...selectedAreas].join(', ');
+  const deals=sliderVals.deals, dom=domTouched?sliderVals.dom:null, reviews=sliderVals.reviews, posts=sliderVals.posts;
+  const name=document.getElementById('a-name').value.trim()||capturedName;
+  const brokerage=document.getElementById('a-brokerage').value.trim();
+  const languages=document.getElementById('a-languages').value;
+  const extra=[...selectedPains].join(', ')||'none';
+  const prompt='You are a GTA real estate performance coach. Give hyper-specific, locally grounded advice. Reference actual GTA submarkets, communities, and 2025-2026 market context. Be direct, not generic.\n'+
+    'AGENT: Name:'+(name||'Agent')+', Brokerage:'+(brokerage||'N/A')+', Markets:'+areaLabel+', Years:'+selectedYears+', Deals:'+deals+', DOM:'+(dom!==null?dom+'d':'N/A')+', Reviews:'+reviews+', Posts/mo:'+posts+', Languages:'+(languages||'N/A')+', Pain points:'+extra+'\n'+
+    'COMBINED BENCHMARKS for '+areaLabel+' (2025): Median deals:'+b.avgDeals+', Top quartile:'+b.topQ+'+, Median DOM:'+b.avgDOM+'d, Median price:$'+b.avgPrice.toLocaleString()+', Median reviews:'+b.avgReviews+', Target posts:'+b.avgPosts+'-'+(b.avgPosts+2)+'/mo, Competition:'+b.competition+'\n'+
+    'Context: 2025 worst GTA year since 1995. Most of 70,000 agents closed 0-1 deals.\n'+
+    'Return ONLY valid JSON no markdown:\n'+
+    '{"score":<1-100>,"scoreLabel":"<Needs attention|Building momentum|On track|Top performer>","scoreSummary":"<2 sentences: standing + biggest opportunity, specific to '+selectedArea+'>",'+
+    '"benchmarks":[{"label":"Deals vs area avg","you":"'+deals+'","avg":"'+b.avgDeals+'/yr","status":"'+st(deals,b.avgDeals,false)+'","youPct":'+Math.min((deals/(b.topQ*1.5))*100,100).toFixed(0)+',"avgPct":'+Math.min((b.avgDeals/(b.topQ*1.5))*100,100).toFixed(0)+'},'+
+    '{"label":"Days on market","you":"'+(dom!==null?dom+'d':'N/A')+'","avg":"'+b.avgDOM+'d","status":"'+(dom!==null?st(dom,b.avgDOM,true):'parity')+'","youPct":'+(dom!==null?Math.min((dom/90)*100,100).toFixed(0):50)+',"avgPct":'+((b.avgDOM/90)*100).toFixed(0)+'},'+
+    '{"label":"Google reviews","you":"'+reviews+'","avg":"'+b.avgReviews+' avg","status":"'+st(reviews,b.avgReviews,false)+'","youPct":'+Math.min((reviews/50)*100,100).toFixed(0)+',"avgPct":'+((b.avgReviews/50)*100).toFixed(0)+'},'+
+    '{"label":"Social activity","you":"'+posts+'/mo","avg":"'+b.avgPosts+'-'+(b.avgPosts+2)+'/mo","status":"'+st(posts,b.avgPosts,false)+'","youPct":'+Math.min((posts/20)*100,100).toFixed(0)+',"avgPct":'+(((b.avgPosts+1)/20)*100).toFixed(0)+'}],'+
+    '"insights":[{"type":"win","text":"<specific strength with numbers and '+selectedArea+' context>"},{"type":"warn","text":"<one real risk, name the gap vs '+b.avgDeals+' median>"},{"type":"fix","text":"<single highest-leverage fix, exact action>"}],'+
+    '"actions":[{"num":"01","title":"<action>","desc":"<2 sentences, '+selectedArea+'-specific>"},{"num":"02","title":"<action>","desc":"<2 sentences, address top pain>"},{"num":"03","title":"<action>","desc":"<2 sentences, multilingual angle if relevant>"},{"num":"04","title":"<quick win>","desc":"<immediately actionable>"}],'+
+    '"toolkitAngle":"<1 sentence: which exact prompt in the GTA Realtor AI Toolkit gives fastest ROI>"}';
+  try{
+    const res=await fetch('/.netlify/functions/analyze',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    const raw=data.content.map(b=>b.text||'').join('');
+    const result=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    renderResults(result,name,areaLabel);
+  } catch(e){
+    btn.disabled=false;
+    btn.innerHTML='Generate my performance report →';
+    err.textContent='Something went wrong. Please try again.';
+    err.style.display='block';
+  }
+}
+
+function renderResults(r,name,area){
+  const btn=document.getElementById('analyze-btn');
+  btn.disabled=false;
+  btn.innerHTML='Generate my performance report →';
+  document.getElementById('analyzer-form').style.display='none';
+  const C=2*Math.PI*32;
+  const benchBarsHTML=r.benchmarks.map(bm=>
+    '<div class="bench-bar-row">'+
+    '<div class="bb-label">'+bm.label+'</div>'+
+    '<div class="bb-track"><div class="bb-bench-bar" style="width:'+bm.avgPct+'%"></div><div class="bb-you-bar '+bm.status+'" style="width:0%" data-target="'+bm.youPct+'"></div></div>'+
+    '<div class="bb-values"><div class="bb-you-val">'+bm.you+'</div><div>avg '+bm.avg+'</div></div>'+
+    '</div>').join('');
+  const insightHTML=r.insights.map(i=>'<li class="insight-item '+i.type+'"><div class="ins-bar '+i.type+'"></div><span class="insight-text">'+i.text+'</span></li>').join('');
+  const actionHTML=r.actions.map(a=>'<div class="action-card"><div class="ac-num">Action '+a.num+'</div><div class="ac-title">'+a.title+'</div><div class="ac-desc">'+a.desc+'</div></div>').join('');
+  const wrap=document.getElementById('results-wrap');
+  wrap.innerHTML=
+    '<div class="score-banner">'+
+    '<div class="score-ring"><svg viewBox="0 0 76 76">'+
+    '<circle cx="38" cy="38" r="32" fill="none" stroke="rgba(201,168,76,0.2)" stroke-width="4"/>'+
+    '<circle id="score-arc" cx="38" cy="38" r="32" fill="none" stroke="#C9A84C" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'" transform="rotate(-90 38 38)"/>'+
+    '<text x="38" y="34" text-anchor="middle" font-family="Playfair Display,serif" font-size="18" font-weight="700" fill="#C9A84C" id="score-num">0</text>'+
+    '<text x="38" y="48" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="rgba(255,255,255,0.4)">/100</text>'+
+    '</svg></div>'+
+    '<div class="score-meta"><h3>'+r.scoreLabel+(name?' — '+name:'')+'</h3><p>'+r.scoreSummary+'</p></div></div>'+
+    '<div class="r-label">How you compare in '+area+'</div>'+
+    '<div class="bench-bars">'+benchBarsHTML+'</div>'+
+    '<div class="r-label">Key insights</div>'+
+    '<ul class="insight-list">'+insightHTML+'</ul>'+
+    '<div class="r-label">Your priority action plan</div>'+
+    '<div class="action-grid">'+actionHTML+'</div>'+
+    '<div class="toolkit-cta-box">'+
+    '<div class="tcb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>'+
+    '<div class="tcb-body"><strong>Recommended: GTA Realtor AI Toolkit</strong><p>'+r.toolkitAngle+'</p>'+
+    '<button class="btn-primary" data-action="checkout">Get the toolkit — $47 CAD →</button></div></div>'+
+    '<span class="reset-link" data-action="reset-analyzer">← Analyze a different profile</span>';
+  wrap.classList.add('visible');
+  wrap.scrollIntoView({behavior:'smooth',block:'start'});
+  // Animate score
+  let cur=0;
+  const arc=document.getElementById('score-arc');
+  const numEl=document.getElementById('score-num');
+  const step=()=>{
+    arc.setAttribute('stroke-dashoffset',String(C-(cur/100)*C));
+    numEl.textContent=Math.round(cur);
+    if(cur<r.score){cur=Math.min(cur+1.5,r.score);requestAnimationFrame(step);}
+  };
+  requestAnimationFrame(step);
+  // Animate bars
+  setTimeout(()=>{document.querySelectorAll('.bb-you-bar').forEach(b=>{b.style.width=b.dataset.target+'%';});},400);
+}
+
+function resetAnalyzer(){
+  document.getElementById('results-wrap').innerHTML='';
+  document.getElementById('results-wrap').classList.remove('visible');
+  document.getElementById('analyzer-form').style.display='grid';
+  document.getElementById('analyzer-form').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// Event delegation
+document.addEventListener('click',function(e){
+  const el=e.target.closest('[data-action]');
+  if(!el) return;
+  const a=el.dataset.action;
+  if(a==='page-sales') showPage('sales');
+  else if(a==='page-analyzer') showPage('analyzer');
+  else if(a==='goto-inside'){showPage('sales');setTimeout(()=>document.getElementById('whats-inside').scrollIntoView({behavior:'smooth'}),100);}
+  else if(a==='goto-pricing'){showPage('sales');setTimeout(()=>document.getElementById('pricing-section').scrollIntoView({behavior:'smooth'}),100);}
+  else if(a==='checkout'){window.open('https://gtarealtor.gumroad.com/l/aitoolkit','_blank');}
+  else if(a==='faq-toggle') el.parentElement.classList.toggle('open');
+  else if(a==='unlock') unlockAnalyzer();
+  else if(a==='run-analysis') runAnalysis();
+  else if(a==='select-area') selectArea(el,el.dataset.area);
+  else if(a==='select-years') selectYears(el,el.dataset.years);
+  else if(a==='toggle-tag') toggleTag(el);
+  else if(a==='reset-analyzer') resetAnalyzer();
+  else if(el.classList.contains('qbtn')) handleQuickBtn(el);
+});
+</script>
+</body>
+</html>

@@ -7,12 +7,20 @@ exports.handler = async function(event) {
 
   const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
   if (!ANTHROPIC_API_KEY) {
+    console.error('ERROR: ANTHROPIC_API_KEY not set');
     return { statusCode: 500, body: JSON.stringify({ error: 'API key not configured.' }) };
   }
 
+  console.log('API key found, length:', ANTHROPIC_API_KEY.length);
+
   let body;
   try { body = JSON.parse(event.body); }
-  catch(e) { return { statusCode: 400, body: JSON.stringify({ error: 'Invalid request.' }) }; }
+  catch(e) { 
+    console.error('ERROR: Invalid JSON body', e.message);
+    return { statusCode: 400, body: JSON.stringify({ error: 'Invalid request.' }) }; 
+  }
+
+  console.log('Messages count:', body.messages ? body.messages.length : 0);
 
   const payload = JSON.stringify({
     model: 'claude-sonnet-4-20250514',
@@ -35,8 +43,10 @@ exports.handler = async function(event) {
 
     const req = https.request(options, (res) => {
       let data = '';
+      console.log('Anthropic response status:', res.statusCode);
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
+        console.log('Anthropic response body:', data.substring(0, 200));
         resolve({
           statusCode: 200,
           headers: { 'Content-Type': 'application/json' },
@@ -46,6 +56,7 @@ exports.handler = async function(event) {
     });
 
     req.on('error', (err) => {
+      console.error('HTTPS request error:', err.message);
       resolve({
         statusCode: 500,
         body: JSON.stringify({ error: 'API error.', detail: err.message })

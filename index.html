@@ -1199,19 +1199,44 @@ async function runAnalysis(){
   const brokerage=document.getElementById('a-brokerage').value.trim();
   const languages=document.getElementById('a-languages').value;
   const extra=[...selectedPains].join(', ')||'none';
-  const prompt='GTA real estate coach. Be direct and specific. Return ONLY valid JSON, no markdown fences.\n'+
-    'AGENT: '+( name||'Agent')+', Markets:'+areaLabel+', Years:'+selectedYears+', Deals:'+deals+', DOM:'+(dom!==null?dom+'d':'N/A')+', Reviews:'+reviews+', Posts/mo:'+posts+(languages?', Languages:'+languages:'')+( extra!=='none'?', Challenges:'+extra:'')+'\n'+
+  // Calculate revenue figures client-side to pass into prompt
+  const avgPrice = b.avgPrice;
+  const commissionRate = 0.025; // 2.5% GCI estimate
+  const avgGCI = Math.round(avgPrice * commissionRate);
+  const dealsGap = Math.max(0, b.topQ - deals);
+  const revenueGap = Math.round(dealsGap * avgGCI);
+  const currentGCI = Math.round(deals * avgGCI);
+  const topGCI = Math.round(b.topQ * avgGCI);
+  const listingHoursSaved = Math.round(deals * 0.75); // 45min per listing saved
+
+  const prompt='You are a GTA real estate performance coach writing a compelling, honest analysis. Be specific and direct. Reference actual market conditions. Return ONLY valid JSON, no markdown fences.\n'+
+    'AGENT: '+(name||'Agent')+', Markets:'+areaLabel+', Years:'+selectedYears+', Deals:'+deals+', DOM:'+(dom!==null?dom+'d':'N/A')+', Reviews:'+reviews+', Posts/mo:'+posts+(languages?', Languages:'+languages:'')+( extra!=='none'?', Challenges:'+extra:'')+'\n'+
     'BENCHMARKS '+areaLabel+': Deals avg:'+b.avgDeals+' topQ:'+b.topQ+'+, DOM:'+b.avgDOM+'d, Reviews:'+b.avgReviews+', Posts:'+b.avgPosts+'-'+(b.avgPosts+2)+'/mo\n'+
-    'Context: 2025 worst GTA year since 1995.\n'+
-    'JSON schema (keep all text fields under 120 chars):\n'+
-    '{"score":<1-100>,"scoreLabel":"<Needs attention|Building momentum|On track|Top performer>","scoreSummary":"<max 100 chars>",'+
+    'REVENUE CONTEXT: Avg transaction $'+avgPrice.toLocaleString()+', est GCI/deal $'+avgGCI.toLocaleString()+', agent current est GCI $'+currentGCI.toLocaleString()+', top quartile est GCI $'+topGCI.toLocaleString()+', revenue gap $'+revenueGap.toLocaleString()+'\n'+
+    'Context: 2025 worst GTA year since 1995. 90% of deals go to top 10% of agents.\n'+
+    'JSON schema — text fields max 130 chars, be specific not generic:\n'+
+    '{"score":<1-100>,'+
+    '"scoreLabel":"<Needs attention|Building momentum|On track|Top performer>",'+
+    '"scoreSummary":"<1 punchy sentence about where they stand right now in '+areaLabel+'>",'+
+    '"revenueGap":'+revenueGap+','+
+    '"revenueGapLabel":"<1 sentence framing the $'+revenueGap.toLocaleString()+' gap as an opportunity not a criticism, reference '+areaLabel+'>",'+
+    '"dealsGap":'+dealsGap+','+
+    '"opportunityLine":"<1 sentence: what closing '+dealsGap+' more deals could mean for their business in '+areaLabel+', make it tangible>",'+
     '"benchmarks":[{"label":"Deals vs avg","you":"'+deals+'","avg":"'+b.avgDeals+'/yr","status":"'+st(deals,b.avgDeals,false)+'","youPct":'+Math.min((deals/(b.topQ*1.5))*100,100).toFixed(0)+',"avgPct":'+Math.min((b.avgDeals/(b.topQ*1.5))*100,100).toFixed(0)+'},'+
     '{"label":"Days on market","you":"'+(dom!==null?dom+'d':'N/A')+'","avg":"'+b.avgDOM+'d","status":"'+(dom!==null?st(dom,b.avgDOM,true):'parity')+'","youPct":'+(dom!==null?Math.min((dom/90)*100,100).toFixed(0):50)+',"avgPct":'+((b.avgDOM/90)*100).toFixed(0)+'},'+
     '{"label":"Google reviews","you":"'+reviews+'","avg":"'+b.avgReviews+'","status":"'+st(reviews,b.avgReviews,false)+'","youPct":'+Math.min((reviews/50)*100,100).toFixed(0)+',"avgPct":'+((b.avgReviews/50)*100).toFixed(0)+'},'+
     '{"label":"Social activity","you":"'+posts+'/mo","avg":"'+b.avgPosts+'-'+(b.avgPosts+2)+'/mo","status":"'+st(posts,b.avgPosts,false)+'","youPct":'+Math.min((posts/20)*100,100).toFixed(0)+',"avgPct":'+(((b.avgPosts+1)/20)*100).toFixed(0)+'}],'+
-    '"insights":[{"type":"win","text":"<strength, max 100 chars>"},{"type":"warn","text":"<risk, max 100 chars>"},{"type":"fix","text":"<action, max 100 chars>"}],'+
-    '"actions":[{"num":"01","title":"<5 words>","desc":"<max 100 chars>"},{"num":"02","title":"<5 words>","desc":"<max 100 chars>"},{"num":"03","title":"<5 words>","desc":"<max 100 chars>"},{"num":"04","title":"<5 words>","desc":"<max 100 chars>"}],'+
-    '"toolkitAngle":"<max 100 chars>"}';
+    '"insights":['+
+    '{"type":"win","text":"<genuine strength, reference their actual numbers and '+areaLabel+'>"},'+
+    '{"type":"warn","text":"<specific risk with consequence, what it is costing them>"},'+
+    '{"type":"fix","text":"<highest leverage action, name exactly what to do this week>"}],'+
+    '"actions":['+
+    '{"num":"01","title":"<5 words max>","desc":"<specific to '+areaLabel+', what and why it works there>"},'+
+    '{"num":"02","title":"<5 words max>","desc":"<address their biggest challenge directly>"},'+
+    '{"num":"03","title":"<5 words max>","desc":"<community or language angle relevant to their markets>"},'+
+    '{"num":"04","title":"<quick win this week>","desc":"<something they can do today, not tomorrow>"}],'+
+    '"toolkitModule":"<name the specific prompt number and title from the GTA Realtor AI Toolkit that addresses their single biggest gap>",'+
+    '"toolkitAngle":"<1 sentence: how that specific toolkit module directly addresses their revenue gap>"}';
   try{
     const res=await fetch('/.netlify/functions/analyze',{
       method:'POST',
@@ -1246,16 +1271,35 @@ function renderResults(r,name,area){
   btn.innerHTML='Generate my performance report →';
   document.getElementById('analyzer-form').style.display='none';
   const C=2*Math.PI*32;
+
+  // Revenue gap card — only show if gap > 0
+  const revenueGapHTML = r.revenueGap > 0 ? `
+    <div style="background:var(--surface);border:1px solid var(--gold);border-left:4px solid var(--gold);padding:1.5rem;margin-bottom:1.75rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:center;">
+      <div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Revenue opportunity</div>
+        <div style="font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;color:var(--gold);line-height:1;margin-bottom:6px;">$${r.revenueGap.toLocaleString()}</div>
+        <div style="font-size:13px;color:var(--w55);line-height:1.5;">${r.revenueGapLabel}</div>
+      </div>
+      <div style="background:var(--raised);padding:1rem;border-left:0.5px solid var(--border);">
+        <div style="font-size:11px;color:var(--w35);margin-bottom:4px;">To reach top quartile in ${area}</div>
+        <div style="font-size:14px;color:var(--white);font-weight:500;margin-bottom:8px;">${r.dealsGap} more deal${r.dealsGap===1?'':'s'} this year</div>
+        <div style="font-size:12px;color:var(--w55);font-style:italic;line-height:1.5;">${r.opportunityLine}</div>
+      </div>
+    </div>` : '';
+
   const benchBarsHTML=r.benchmarks.map(bm=>
     '<div class="bench-bar-row">'+
     '<div class="bb-label">'+bm.label+'</div>'+
     '<div class="bb-track"><div class="bb-bench-bar" style="width:'+bm.avgPct+'%"></div><div class="bb-you-bar '+bm.status+'" style="width:0%" data-target="'+bm.youPct+'"></div></div>'+
     '<div class="bb-values"><div class="bb-you-val">'+bm.you+'</div><div>avg '+bm.avg+'</div></div>'+
     '</div>').join('');
+
   const insightHTML=r.insights.map(i=>'<li class="insight-item '+i.type+'"><div class="ins-bar '+i.type+'"></div><span class="insight-text">'+i.text+'</span></li>').join('');
   const actionHTML=r.actions.map(a=>'<div class="action-card"><div class="ac-num">Action '+a.num+'</div><div class="ac-title">'+a.title+'</div><div class="ac-desc">'+a.desc+'</div></div>').join('');
+
   const wrap=document.getElementById('results-wrap');
   wrap.innerHTML=
+    // Score banner
     '<div class="score-banner">'+
     '<div class="score-ring"><svg viewBox="0 0 76 76">'+
     '<circle cx="38" cy="38" r="32" fill="none" stroke="rgba(201,168,76,0.2)" stroke-width="4"/>'+
@@ -1264,20 +1308,38 @@ function renderResults(r,name,area){
     '<text x="38" y="48" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="rgba(255,255,255,0.4)">/100</text>'+
     '</svg></div>'+
     '<div class="score-meta"><h3>'+r.scoreLabel+(name?' — '+name:'')+'</h3><p>'+r.scoreSummary+'</p></div></div>'+
+
+    // Revenue gap
+    revenueGapHTML+
+
+    // Benchmarks
     '<div class="r-label">How you compare in '+area+'</div>'+
     '<div class="bench-bars">'+benchBarsHTML+'</div>'+
+
+    // Insights
     '<div class="r-label">Key insights</div>'+
     '<ul class="insight-list">'+insightHTML+'</ul>'+
+
+    // Actions
     '<div class="r-label">Your priority action plan</div>'+
     '<div class="action-grid">'+actionHTML+'</div>'+
+
+    // Toolkit CTA — richer, tied to specific module
     '<div class="toolkit-cta-box">'+
     '<div class="tcb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>'+
-    '<div class="tcb-body"><strong>Recommended: GTA Realtor AI Toolkit</strong><p>'+r.toolkitAngle+'</p>'+
-    '<button class="btn-primary" data-action="checkout">Get the toolkit — $47 CAD →</button></div></div>'+
+    '<div class="tcb-body">'+
+    '<strong>'+(r.toolkitModule||'GTA Realtor AI Toolkit')+'</strong>'+
+    '<p>'+r.toolkitAngle+'</p>'+
+    (r.revenueGap > 0 ? '<p style="font-size:12px;color:rgba(201,168,76,0.7);margin-bottom:12px;">At $47, this toolkit costs less than 0.01% of your revenue opportunity.</p>' : '')+
+    '<button class="btn-primary" data-action="checkout">Get the toolkit — $47 CAD →</button>'+
+    '</div></div>'+
+
     '<span class="reset-link" data-action="reset-analyzer">← Analyze a different profile</span>';
+
   wrap.classList.add('visible');
   wrap.scrollIntoView({behavior:'smooth',block:'start'});
-  // Animate score
+
+  // Animate score ring
   let cur=0;
   const arc=document.getElementById('score-arc');
   const numEl=document.getElementById('score-num');
@@ -1287,6 +1349,7 @@ function renderResults(r,name,area){
     if(cur<r.score){cur=Math.min(cur+1.5,r.score);requestAnimationFrame(step);}
   };
   requestAnimationFrame(step);
+
   // Animate bars
   setTimeout(()=>{document.querySelectorAll('.bb-you-bar').forEach(b=>{b.style.width=b.dataset.target+'%';});},400);
 }

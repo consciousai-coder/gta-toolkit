@@ -394,6 +394,108 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .sz-red{background:var(--red);}.sz-gold{background:var(--gold);}.sz-green{background:#4CAF7D;}
 .sz-label{position:absolute;top:-16px;font-size:9px;color:var(--w35);transform:translateX(-50%);white-space:nowrap;}
 .slider-track{position:relative;margin-top:20px;}
+
+/* ── RESULTS OVERLAY ── */
+.results-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:500;
+  background:rgba(10,8,6,0.92);
+  backdrop-filter:blur(8px);
+  overflow-y:auto;
+  padding:0;
+  animation:overlayIn 0.3s ease;
+}
+.results-overlay.open{display:block;}
+@keyframes overlayIn{from{opacity:0;}to{opacity:1;}}
+.overlay-inner{
+  max-width:780px;
+  margin:0 auto;
+  padding:2rem 2rem 4rem;
+  min-height:100vh;
+  position:relative;
+}
+.overlay-topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:1rem 0 1.5rem;
+  border-bottom:0.5px solid var(--border);
+  margin-bottom:2rem;
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:rgba(10,8,6,0.95);
+  backdrop-filter:blur(8px);
+}
+.overlay-brand{
+  font-family:var(--serif);
+  font-size:14px;
+  font-weight:700;
+  color:var(--white);
+}
+.overlay-brand span{color:var(--gold);font-style:italic;}
+.overlay-close{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  color:var(--w55);
+  cursor:pointer;
+  background:var(--raised);
+  border:0.5px solid var(--border-w);
+  padding:7px 14px;
+  font-family:var(--sans);
+  transition:all 0.15s;
+}
+.overlay-close:hover{color:var(--gold);border-color:var(--border);}
+.overlay-buy-bar{
+  position:sticky;
+  bottom:0;
+  background:rgba(10,8,6,0.97);
+  backdrop-filter:blur(12px);
+  border-top:1px solid var(--gold);
+  padding:1rem 2rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  margin:0 -2rem -4rem;
+  flex-wrap:wrap;
+}
+.overlay-buy-text{font-size:13px;color:var(--w55);}
+.overlay-buy-text strong{color:var(--gold);font-size:14px;display:block;}
+.rev-opportunity-card{
+  background:rgba(201,168,76,0.06);
+  border:1px solid var(--gold);
+  border-left:4px solid var(--gold);
+  padding:1.5rem;
+  margin-bottom:1.75rem;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1.5rem;
+  align-items:center;
+}
+.rev-amount{
+  font-family:var(--serif);
+  font-size:2.4rem;
+  font-weight:700;
+  color:var(--gold);
+  line-height:1;
+  margin-bottom:6px;
+}
+.rev-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+.rev-desc{font-size:13px;color:var(--w55);line-height:1.5;}
+.rev-right{background:rgba(255,255,255,0.04);padding:1rem;border-left:0.5px solid var(--border);}
+.rev-deals{font-size:15px;color:var(--white);font-weight:500;margin-bottom:6px;}
+.rev-opportunity{font-size:12px;color:var(--w55);font-style:italic;line-height:1.5;}
+@media(max-width:600px){
+  .rev-opportunity-card{grid-template-columns:1fr;}
+  .overlay-buy-bar{flex-direction:column;text-align:center;}
+  .overlay-inner{padding:1rem 1rem 5rem;}
+  .overlay-topbar{padding:0.75rem 0 1rem;}
+}
 </style>
 </head>
 <body>
@@ -1298,9 +1400,13 @@ function renderResults(r,name,area){
   const actionHTML=r.actions.map(a=>'<div class="action-card"><div class="ac-num">Action '+a.num+'</div><div class="ac-title">'+a.title+'</div><div class="ac-desc">'+a.desc+'</div></div>').join('');
 
   const wrap=document.getElementById('results-wrap');
-  wrap.innerHTML=
+  wrap.innerHTML='<div style="text-align:center;padding:2rem;color:var(--w35);font-size:13px;">Your report is ready — see overlay above ↑</div>';
+  wrap.classList.add('visible');
+
+  // Build overlay content
+  const overlayHTML =
     // Score banner
-    '<div class="score-banner">'+
+    '<div class="score-banner" style="background:rgba(201,168,76,0.06);">'+
     '<div class="score-ring"><svg viewBox="0 0 76 76">'+
     '<circle cx="38" cy="38" r="32" fill="none" stroke="rgba(201,168,76,0.2)" stroke-width="4"/>'+
     '<circle id="score-arc" cx="38" cy="38" r="32" fill="none" stroke="#C9A84C" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'" transform="rotate(-90 38 38)"/>'+
@@ -1309,7 +1415,7 @@ function renderResults(r,name,area){
     '</svg></div>'+
     '<div class="score-meta"><h3>'+r.scoreLabel+(name?' — '+name:'')+'</h3><p>'+r.scoreSummary+'</p></div></div>'+
 
-    // Revenue gap
+    // Revenue gap card
     revenueGapHTML+
 
     // Benchmarks
@@ -1324,20 +1430,16 @@ function renderResults(r,name,area){
     '<div class="r-label">Your priority action plan</div>'+
     '<div class="action-grid">'+actionHTML+'</div>'+
 
-    // Toolkit CTA — richer, tied to specific module
-    '<div class="toolkit-cta-box">'+
+    // Toolkit recommendation
+    '<div class="toolkit-cta-box" style="margin-bottom:0;">'+
     '<div class="tcb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>'+
     '<div class="tcb-body">'+
     '<strong>'+(r.toolkitModule||'GTA Realtor AI Toolkit')+'</strong>'+
     '<p>'+r.toolkitAngle+'</p>'+
-    (r.revenueGap > 0 ? '<p style="font-size:12px;color:rgba(201,168,76,0.7);margin-bottom:12px;">At $47, this toolkit costs less than 0.01% of your revenue opportunity.</p>' : '')+
-    '<button class="btn-primary" data-action="checkout">Get the toolkit — $47 CAD →</button>'+
-    '</div></div>'+
+    (r.revenueGap > 0 ? '<p style="font-size:12px;color:rgba(201,168,76,0.7);margin-bottom:0;">At $47, this toolkit costs less than 0.01% of your revenue opportunity.</p>' : '')+
+    '</div></div>';
 
-    '<span class="reset-link" data-action="reset-analyzer">← Analyze a different profile</span>';
-
-  wrap.classList.add('visible');
-  wrap.scrollIntoView({behavior:'smooth',block:'start'});
+  openOverlay(overlayHTML);
 
   // Animate score ring
   let cur=0;
@@ -1355,10 +1457,25 @@ function renderResults(r,name,area){
 }
 
 function resetAnalyzer(){
+  closeOverlay();
   document.getElementById('results-wrap').innerHTML='';
   document.getElementById('results-wrap').classList.remove('visible');
   document.getElementById('analyzer-form').style.display='grid';
   document.getElementById('analyzer-form').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+
+function openOverlay(html){
+  document.getElementById('overlay-content').innerHTML = html;
+  const overlay = document.getElementById('results-overlay');
+  overlay.classList.add('open');
+  overlay.scrollTo(0, 0);
+  document.body.style.overflow = 'hidden';
+}
+
+function closeOverlay(){
+  document.getElementById('results-overlay').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 // Event delegation
@@ -1379,7 +1496,28 @@ document.addEventListener('click',function(e){
   else if(a==='toggle-tag') toggleTag(el);
   else if(a==='reset-analyzer') resetAnalyzer();
   else if(el.classList.contains('qbtn')) handleQuickBtn(el);
+  else if(a==='close-overlay') closeOverlay();
 });
 </script>
+
+<!-- RESULTS OVERLAY -->
+<div class="results-overlay" id="results-overlay">
+  <div class="overlay-inner">
+    <div class="overlay-topbar">
+      <div class="overlay-brand">GTA Realtor <span>AI Toolkit</span> — Your Report</div>
+      <button class="overlay-close" data-action="close-overlay">✕ Close report</button>
+    </div>
+    <div id="overlay-content"></div>
+    <div style="height:80px;"></div>
+  </div>
+  <div class="overlay-buy-bar">
+    <div class="overlay-buy-text">
+      <strong>GTA Realtor AI Toolkit — $47 CAD</strong>
+      40 prompts · 5 email templates · 3 neighbourhood guides · instant download
+    </div>
+    <button class="btn-primary" data-action="checkout" style="flex-shrink:0;">Get the toolkit — $47 CAD →</button>
+  </div>
+</div>
+
 </body>
 </html>

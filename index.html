@@ -1381,7 +1381,7 @@ async function runAnalysis(){
     '"toolkitModule":"<name the specific prompt number and title from the GTA Realtor AI Toolkit that addresses their single biggest gap>",'+
     '"toolkitAngle":"<1 sentence: how that specific toolkit module directly addresses their revenue gap>"}';
   try{
-    const res=await fetch('/.netlify/functions/analyze',{
+    const res=await fetch('/api/analyze',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({messages:[{role:'user',content:prompt}]})
@@ -1537,7 +1537,7 @@ document.addEventListener('click',function(e){
   else if(a==='page-analyzer') showPage('analyzer');
   else if(a==='goto-inside'){showPage('sales');setTimeout(()=>document.getElementById('whats-inside').scrollIntoView({behavior:'smooth'}),100);}
   else if(a==='goto-pricing'){showPage('sales');setTimeout(()=>document.getElementById('pricing-section').scrollIntoView({behavior:'smooth'}),100);}
-  else if(a==='checkout'){window.open('https://gtarealtor.gumroad.com/l/aitoolkit','_blank');}
+  else if(a==='checkout'){window.open('YOUR_GUMROAD_URL_HERE','_blank');}
   else if(a==='faq-toggle') el.parentElement.classList.toggle('open');
   else if(a==='unlock') unlockAnalyzer();
   else if(a==='run-analysis') runAnalysis();

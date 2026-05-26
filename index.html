@@ -1334,7 +1334,49 @@ async function runAnalysis(){
   if(!selectedYears){err.textContent='Please select your years licensed.';err.style.display='block';return;}
   const btn=document.getElementById('analyze-btn');
   btn.disabled=true;
-  btn.innerHTML='<div class="spinner" style="border-top-color:#1C1C1A;margin:0 auto;"></div>';
+
+  // Animated progress loader
+  let pct = 0;
+  const phases = [
+    { target: 18, label: 'Reading your profile…' },
+    { target: 38, label: 'Pulling ' + ([...selectedAreas][0] || 'GTA') + ' benchmarks…' },
+    { target: 62, label: 'Calculating revenue gap…' },
+    { target: 81, label: 'Building your action plan…' },
+    { target: 93, label: 'Finalising report…' },
+  ];
+  let phaseIdx = 0;
+  let rafId;
+
+  function renderProgress() {
+    const phase = phases[Math.min(phaseIdx, phases.length - 1)];
+    btn.innerHTML =
+      '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:2px 0;min-width:220px;">' +
+        '<div style="display:flex;align-items:baseline;gap:4px;">' +
+          '<span style="font-family:Playfair Display,serif;font-size:1.4rem;font-weight:700;color:#1C1C1A;line-height:1;">' + Math.round(pct) + '</span>' +
+          '<span style="font-size:11px;font-weight:700;color:#1C1C1A;opacity:0.7;">%</span>' +
+        '</div>' +
+        '<div style="width:180px;height:3px;background:rgba(28,28,26,0.2);border-radius:2px;overflow:hidden;">' +
+          '<div style="height:100%;width:' + pct + '%;background:#1C1C1A;border-radius:2px;transition:width 0.15s ease;"></div>' +
+        '</div>' +
+        '<div style="font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#1C1C1A;opacity:0.65;">' + phase.label + '</div>' +
+      '</div>';
+  }
+
+  function tickProgress() {
+    const phase = phases[Math.min(phaseIdx, phases.length - 1)];
+    const target = phase.target;
+    const speed = phaseIdx < 2 ? 0.9 : phaseIdx < 4 ? 0.5 : 0.2;
+    if (pct < target) {
+      pct = Math.min(pct + speed, target);
+      renderProgress();
+    } else if (phaseIdx < phases.length - 1) {
+      phaseIdx++;
+    }
+    rafId = requestAnimationFrame(tickProgress);
+  }
+
+  renderProgress();
+  rafId = requestAnimationFrame(tickProgress);
   const b=getAvgBench();
   const areaLabel=[...selectedAreas].join(', ');
   const deals=sliderVals.deals, dom=domTouched?sliderVals.dom:null, reviews=sliderVals.reviews, posts=sliderVals.posts;
@@ -1398,9 +1440,24 @@ async function runAnalysis(){
       const unescaped=raw.replace(/\\"/g,'"').replace(/\\n/g,' ').replace(/\\\\/g,'\\');
       result=JSON.parse(unescaped.replace(/```json|```/g,'').trim());
     }
-    renderResults(result,name,areaLabel);
+    // Complete the progress to 100%
+    cancelAnimationFrame(rafId);
+    pct = 100; phaseIdx = phases.length - 1;
+    btn.innerHTML =
+      '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:2px 0;min-width:220px;">' +
+        '<div style="display:flex;align-items:baseline;gap:4px;">' +
+          '<span style="font-family:Playfair Display,serif;font-size:1.4rem;font-weight:700;color:#1C1C1A;line-height:1;">100</span>' +
+          '<span style="font-size:11px;font-weight:700;color:#1C1C1A;opacity:0.7;">%</span>' +
+        '</div>' +
+        '<div style="width:180px;height:3px;background:rgba(28,28,26,0.2);border-radius:2px;overflow:hidden;">' +
+          '<div style="height:100%;width:100%;background:#1C1C1A;border-radius:2px;"></div>' +
+        '</div>' +
+        '<div style="font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#1C1C1A;opacity:0.65;">Report ready ✔</div>' +
+      '</div>';
+    setTimeout(() => renderResults(result,name,areaLabel), 400);
   } catch(e){
     console.error('Full error:', e.message, e.stack);
+    cancelAnimationFrame(rafId);
     btn.disabled=false;
     btn.innerHTML='Generate my performance report →';
     err.textContent='Error: '+e.message+' — check browser console for details.';
@@ -1412,6 +1469,7 @@ function renderResults(r,name,area){
   const btn=document.getElementById('analyze-btn');
   btn.disabled=false;
   btn.innerHTML='Generate my performance report →';
+  btn.style.minHeight='';
   document.getElementById('analyzer-form').style.display='none';
   const C=2*Math.PI*32;
 
@@ -1537,7 +1595,7 @@ document.addEventListener('click',function(e){
   else if(a==='page-analyzer') showPage('analyzer');
   else if(a==='goto-inside'){showPage('sales');setTimeout(()=>document.getElementById('whats-inside').scrollIntoView({behavior:'smooth'}),100);}
   else if(a==='goto-pricing'){showPage('sales');setTimeout(()=>document.getElementById('pricing-section').scrollIntoView({behavior:'smooth'}),100);}
-  else if(a==='checkout'){window.open('YOUR_GUMROAD_URL_HERE','_blank');}
+  else if(a==='checkout'){window.open('https://gtarealtor.gumroad.com/l/aitoolkit','_blank');}
   else if(a==='faq-toggle') el.parentElement.classList.toggle('open');
   else if(a==='unlock') unlockAnalyzer();
   else if(a==='run-analysis') runAnalysis();

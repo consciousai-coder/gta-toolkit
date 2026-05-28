@@ -42,17 +42,32 @@ body{font-family:var(--sans);background:var(--bg);color:var(--white);line-height
 .grid-texture{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.04) 1px,transparent 1px);background-size:32px 32px;pointer-events:none;}
 
 /* NAV */
-nav{position:sticky;top:0;z-index:100;background:rgba(28,28,26,0.95);backdrop-filter:blur(12px);border-bottom:0.5px solid var(--border);padding:0 2.5rem;display:flex;align-items:center;justify-content:space-between;height:58px;}
-.nav-logo{display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none;}
-.nav-logo-mark{width:30px;height:30px;border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;}
+nav{position:sticky;top:0;z-index:100;background:rgba(28,28,26,0.97);backdrop-filter:blur(12px);border-bottom:0.5px solid var(--border);padding:0 1.25rem;display:flex;align-items:center;justify-content:space-between;height:58px;gap:12px;}
+.nav-logo{display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none;flex-shrink:0;}
+.nav-logo-mark{width:30px;height:30px;border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .nav-logo-mark svg{width:16px;height:16px;}
 .nav-brand{font-family:var(--serif);font-size:13px;font-weight:700;color:var(--white);}
 .nav-brand span{color:var(--gold);font-style:italic;}
 .nav-links{display:flex;align-items:center;gap:1.5rem;}
-.nav-link{font-size:13px;color:var(--w55);cursor:pointer;transition:color 0.15s;text-decoration:none;background:none;border:none;}
+.nav-link{font-size:13px;color:var(--w55);cursor:pointer;transition:color 0.15s;text-decoration:none;background:none;border:none;font-family:var(--sans);}
 .nav-link:hover{color:var(--gold);}
-.nav-cta{background:var(--gold);color:var(--bg);font-family:var(--sans);font-size:13px;font-weight:600;padding:8px 18px;border:none;cursor:pointer;transition:background 0.15s;letter-spacing:0.02em;}
+.nav-cta{background:var(--gold);color:var(--bg);font-family:var(--sans);font-size:13px;font-weight:600;padding:8px 18px;border:none;cursor:pointer;transition:background 0.15s;letter-spacing:0.02em;white-space:nowrap;flex-shrink:0;}
 .nav-cta:hover{background:var(--gold-lt);}
+/* Hamburger — mobile only */
+.nav-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:6px;flex-shrink:0;}
+.nav-hamburger span{display:block;width:20px;height:1.5px;background:var(--w55);transition:background 0.15s;}
+.nav-hamburger:hover span{background:var(--gold);}
+/* Mobile drawer */
+.nav-drawer{display:none;flex-direction:column;background:rgba(28,28,26,0.99);border-bottom:0.5px solid var(--border);padding:8px 0 12px;}
+.nav-drawer.open{display:flex;}
+.nav-drawer button{font-family:var(--sans);font-size:15px;font-weight:400;color:var(--w55);background:none;border:none;border-bottom:0.5px solid var(--border-w);padding:14px 1.25rem;text-align:left;cursor:pointer;transition:color 0.15s;}
+.nav-drawer button:last-of-type{border-bottom:none;}
+.nav-drawer button:hover{color:var(--gold);}
+@media(max-width:600px){
+  .nav-links{display:none;}
+  .nav-hamburger{display:flex;}
+  nav{padding:0 1rem;}
+}
 
 /* EYEBROW */
 .eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:1.25rem;}
@@ -558,13 +573,26 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
     </div>
     <div class="nav-brand">GTA Realtor <span>AI Toolkit</span></div>
   </div>
+  <!-- Desktop links -->
   <div class="nav-links">
     <button class="nav-link" data-action="page-sales">Home</button>
     <button class="nav-link" data-action="goto-inside">What's inside</button>
     <button class="nav-link" data-action="page-analyzer">Free analyzer</button>
     <button class="nav-cta" data-action="goto-pricing">Get the toolkit — $47</button>
   </div>
+  <!-- Mobile: compact CTA + hamburger -->
+  <button class="nav-cta" data-action="goto-pricing" id="nav-cta-mobile" style="display:none;">CAD $47 →</button>
+  <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+<!-- Mobile drawer -->
+<div class="nav-drawer" id="nav-drawer">
+  <button data-action="page-sales">Home</button>
+  <button data-action="goto-inside">What's inside</button>
+  <button data-action="page-analyzer">Free analyzer</button>
+  <button data-action="goto-pricing" style="color:var(--gold);font-weight:600;">Get the toolkit — $47 CAD →</button>
+</div>
 
 <!-- ═══════════════════════════════════════════
      SALES PAGE
@@ -1585,6 +1613,35 @@ document.addEventListener('DOMContentLoaded', function(){
     if(e.target === this) closeOverlay();
   });
 });
+
+// Mobile nav
+(function(){
+  const ham = document.getElementById('nav-ham');
+  const drawer = document.getElementById('nav-drawer');
+  const mobileCta = document.getElementById('nav-cta-mobile');
+  function applyMobile(){
+    const isMobile = window.innerWidth <= 600;
+    if(mobileCta) mobileCta.style.display = isMobile ? 'block' : 'none';
+  }
+  applyMobile();
+  window.addEventListener('resize', applyMobile);
+  if(ham && drawer){
+    ham.addEventListener('click', function(e){
+      e.stopPropagation();
+      drawer.classList.toggle('open');
+    });
+    // Close drawer when a drawer button is clicked
+    drawer.addEventListener('click', function(){
+      drawer.classList.remove('open');
+    });
+    // Close on outside tap
+    document.addEventListener('click', function(e){
+      if(!drawer.contains(e.target) && e.target !== ham){
+        drawer.classList.remove('open');
+      }
+    });
+  }
+})();
 
 // Event delegation
 document.addEventListener('click',function(e){

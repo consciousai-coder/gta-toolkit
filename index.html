@@ -34,6 +34,57 @@
 html{scroll-behavior:smooth;}
 body{font-family:var(--sans);background:var(--bg);color:var(--white);line-height:1.6;font-size:16px;-webkit-font-smoothing:antialiased;}
 
+/* ── PRE-LAUNCH BANNER ── */
+.prelauncher-bar{
+  background:#0A0A0A;
+  border-bottom:1px solid var(--gold);
+  padding:10px 1.5rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  flex-wrap:wrap;
+  position:sticky;
+  top:0;
+  z-index:200;
+  text-align:center;
+}
+.plb-left{font-size:12px;color:rgba(255,255,255,0.55);font-weight:400;white-space:nowrap;}
+.plb-code{font-family:var(--serif);font-size:15px;font-weight:700;color:var(--gold);letter-spacing:0.04em;}
+.plb-price{display:inline-flex;align-items:baseline;gap:6px;}
+.plb-was{font-size:12px;color:rgba(255,255,255,0.3);text-decoration:line-through;}
+.plb-now{font-size:16px;font-weight:700;color:var(--gold);font-family:var(--serif);}
+.plb-cad{font-size:11px;color:rgba(255,255,255,0.4);}
+.plb-timer{display:inline-flex;align-items:center;gap:4px;font-family:var(--serif);font-size:14px;font-weight:700;color:var(--white);}
+.plb-timer-seg{background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);padding:3px 7px;border-radius:3px;min-width:32px;text-align:center;font-size:13px;color:var(--gold-lt);}
+.plb-timer-sep{color:rgba(201,168,76,0.5);font-size:12px;}
+.plb-cta{background:var(--gold);color:#0A0A0A;font-family:var(--sans);font-size:12px;font-weight:700;padding:7px 16px;border:none;cursor:pointer;letter-spacing:0.03em;white-space:nowrap;flex-shrink:0;transition:background 0.15s;}
+.plb-cta:hover{background:var(--gold-lt);}
+.plb-dismiss{background:none;border:none;color:rgba(255,255,255,0.2);font-size:16px;cursor:pointer;padding:0 0 0 4px;line-height:1;flex-shrink:0;}
+.plb-dismiss:hover{color:rgba(255,255,255,0.5);}
+@media(max-width:600px){
+  .prelauncher-bar{gap:8px;padding:9px 1rem;}
+  .plb-left{font-size:11px;}
+  .plb-now{font-size:14px;}
+}
+
+/* ── PRICING PRE-LAUNCH OVERRIDE ── */
+.price-was{font-family:var(--serif);font-size:1.4rem;color:rgba(255,255,255,0.25);text-decoration:line-through;line-height:1;}
+.price-prelabel{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);padding:3px 10px;display:inline-block;margin-bottom:8px;}
+.code-display{display:inline-flex;align-items:center;gap:10px;margin:10px 0 18px;padding:10px 16px;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.25);border-radius:3px;}
+.code-label{font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;}
+.code-value{font-family:var(--serif);font-size:18px;font-weight:700;color:var(--gold);letter-spacing:0.08em;}
+.code-saving{font-size:11px;color:rgba(255,255,255,0.4);}
+.pricing-expiry{font-size:12px;color:rgba(255,255,255,0.3);margin-top:10px;font-style:italic;}
+.pricing-expiry strong{color:rgba(201,168,76,0.7);}
+
+/* ── MINI COUNTDOWN IN PRICING ── */
+.price-countdown{display:flex;align-items:center;gap:6px;margin:8px 0 16px;font-size:12px;color:rgba(255,255,255,0.4);}
+.pcd-label{font-size:11px;text-transform:uppercase;letter-spacing:0.07em;}
+.pcd-segs{display:inline-flex;gap:3px;align-items:center;}
+.pcd-seg{background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);padding:2px 6px;border-radius:2px;font-family:var(--serif);font-size:13px;font-weight:700;color:var(--gold-lt);min-width:26px;text-align:center;}
+.pcd-sep{color:rgba(201,168,76,0.4);font-size:10px;}
+
 /* PAGE SWITCHING */
 .page{display:none;}
 .page.active{display:block;}
@@ -560,6 +611,30 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 </head>
 <body>
 
+<!-- PRE-LAUNCH BANNER -->
+<div class="prelauncher-bar" id="plb">
+  <span class="plb-left">🚀 <strong style="color:rgba(255,255,255,0.8);">Pre-launch offer</strong> — ends <strong style="color:var(--gold);">June 6 midnight</strong></span>
+  <span class="plb-price">
+    <span class="plb-was">$47</span>
+    <span class="plb-now">$35</span>
+    <span class="plb-cad">CAD</span>
+  </span>
+  <span style="font-size:11px;color:rgba(255,255,255,0.35);">Code:</span>
+  <span class="plb-code">LAUNCH25</span>
+  <span class="plb-timer" id="plb-timer" aria-label="Time remaining">
+    <span class="plb-timer-seg" id="plb-d">--</span>
+    <span class="plb-timer-sep">d</span>
+    <span class="plb-timer-seg" id="plb-h">--</span>
+    <span class="plb-timer-sep">h</span>
+    <span class="plb-timer-seg" id="plb-m">--</span>
+    <span class="plb-timer-sep">m</span>
+    <span class="plb-timer-seg" id="plb-s">--</span>
+    <span class="plb-timer-sep">s</span>
+  </span>
+  <button class="plb-cta" data-action="goto-pricing">Grab at $35 →</button>
+  <button class="plb-dismiss" id="plb-dismiss" aria-label="Dismiss banner">×</button>
+</div>
+
 <!-- NAV -->
 <nav>
   <div class="nav-logo" data-action="page-sales">
@@ -578,10 +653,10 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
     <button class="nav-link" data-action="page-sales">Home</button>
     <button class="nav-link" data-action="goto-inside">What's inside</button>
     <button class="nav-link" data-action="page-analyzer">Free analyzer</button>
-    <button class="nav-cta" data-action="goto-pricing">Get the toolkit — $47</button>
+    <button class="nav-cta" data-action="goto-pricing">Pre-launch — $35 CAD →</button>
   </div>
   <!-- Mobile: compact CTA + hamburger -->
-  <button class="nav-cta" data-action="goto-pricing" id="nav-cta-mobile" style="display:none;">CAD $47 →</button>
+  <button class="nav-cta" data-action="goto-pricing" id="nav-cta-mobile" style="display:none;">$35 →</button>
   <button class="nav-hamburger" id="nav-ham" aria-label="Open menu">
     <span></span><span></span><span></span>
   </button>
@@ -591,7 +666,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   <button data-action="page-sales">Home</button>
   <button data-action="goto-inside">What's inside</button>
   <button data-action="page-analyzer">Free analyzer</button>
-  <button data-action="goto-pricing" style="color:var(--gold);font-weight:600;">Get the toolkit — $47 CAD →</button>
+  <button data-action="goto-pricing" style="color:var(--gold);font-weight:600;">Pre-launch: $35 CAD (code LAUNCH25) →</button>
 </div>
 
 <!-- ═══════════════════════════════════════════
@@ -609,10 +684,10 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
       <div class="hero-tag">The practical AI toolkit TRREB doesn't give you.</div>
       <p class="hero-body">Works with free ChatGPT + Claude. Ready in 10 minutes. Built for Toronto · Brampton · Markham · Scarborough · Mississauga.</p>
       <div class="hero-cta-row">
-        <button class="btn-primary" data-action="goto-pricing">Get the toolkit — $47 CAD →</button>
+        <button class="btn-primary" data-action="goto-pricing">Get the toolkit — $35 CAD (pre-launch) →</button>
         <button class="btn-ghost" data-action="page-analyzer">Free performance analyzer</button>
       </div>
-      <p class="hero-note">Instant PDF download · Works with free ChatGPT + Claude · No subscription</p>
+      <p class="hero-note">🏷️ Pre-launch price: <strong style="color:var(--gold);">$35 CAD</strong> with code <strong style="color:var(--gold);">LAUNCH25</strong> · Offer ends June 6 · Full price $47 after · Instant PDF download · Works with free ChatGPT + Claude</p>
       <div class="stats-row" style="margin-top:2.5rem;">
         <div class="stat-item"><div class="stat-num">40</div><div class="stat-label">AI Prompts</div></div>
         <div class="stat-item"><div class="stat-num">5</div><div class="stat-label">Email Templates</div></div>
@@ -819,15 +894,40 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   <!-- PRICING -->
   <section class="section" id="pricing-section" style="border-top:0.5px solid var(--border-w);">
     <div class="section-inner">
-      <div class="eyebrow"><span class="eyebrow-dot"></span>Get instant access</div>
-      <h2 class="section-title">One price. <em>Lifetime access.</em></h2>
+      <div class="eyebrow"><span class="eyebrow-dot"></span>Pre-launch offer · Ends June 6</div>
+      <h2 class="section-title">25% off until June 6. <em>$47 after.</em></h2>
       <p class="section-sub">Save 5+ hours in your first week. Most agents break even on time savings before they finish reading the PDF.</p>
       <div class="pricing-box">
-        <div class="pricing-badge">Most popular</div>
-        <div class="pricing-price">
-          <div class="price-amount">$47</div>
-          <div class="price-label">CAD · one-time · instant download</div>
+        <div class="pricing-badge">🚀 Pre-launch price</div>
+
+        <!-- PRE-LAUNCH PRICE DISPLAY -->
+        <div style="margin-bottom:1.25rem;">
+          <div class="price-prelabel">Limited time — ends June 6 midnight</div>
+          <div class="pricing-price" style="align-items:baseline;gap:10px;margin-bottom:6px;">
+            <div class="price-was">$47</div>
+            <div class="price-amount">$35</div>
+            <div class="price-label">CAD · one-time · instant download</div>
+          </div>
+
+          <!-- CODE DISPLAY -->
+          <div class="code-display">
+            <span class="code-label">Code</span>
+            <span class="code-value">LAUNCH25</span>
+            <span class="code-saving">· saves you $12</span>
+          </div>
+
+          <!-- MINI COUNTDOWN -->
+          <div class="price-countdown">
+            <span class="pcd-label">Expires in</span>
+            <span class="pcd-segs">
+              <span class="pcd-seg" id="pcd-d">--</span><span class="pcd-sep">d</span>
+              <span class="pcd-seg" id="pcd-h">--</span><span class="pcd-sep">h</span>
+              <span class="pcd-seg" id="pcd-m">--</span><span class="pcd-sep">m</span>
+              <span class="pcd-seg" id="pcd-s">--</span><span class="pcd-sep">s</span>
+            </span>
+          </div>
         </div>
+
         <ul class="pricing-list">
           <li>40 AI prompts across 6 categories</li>
           <li>5 client email templates</li>
@@ -837,8 +937,9 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
           <li>Works with free ChatGPT and Claude</li>
           <li>Lifetime access — no subscription</li>
         </ul>
-        <button class="btn-primary" data-action="checkout" style="width:100%;justify-content:center;">Get the GTA Realtor AI Toolkit →</button>
-        <p class="pricing-guarantee">✦ Instant PDF download. Lifetime access. No subscription.</p>
+        <button class="btn-primary" data-action="checkout" style="width:100%;justify-content:center;font-size:15px;padding:15px 28px;">Get the toolkit — $35 CAD (use code LAUNCH25) →</button>
+        <p class="pricing-guarantee">✦ Enter code <strong style="color:var(--gold);letter-spacing:0.05em;">LAUNCH25</strong> at Gumroad checkout · Instant PDF download · Lifetime access</p>
+        <p class="pricing-expiry">Price returns to <strong>$47 CAD</strong> after June 6 at midnight. No exceptions.</p>
       </div>
     </div>
   </section>
@@ -1606,6 +1707,61 @@ function closeOverlay(){
   document.body.style.overflow = '';
 }
 
+// ── PRE-LAUNCH COUNTDOWN TIMER ──
+(function(){
+  // Expiry: June 6, 2026 at 23:59:59 Eastern Time
+  const EXPIRY = new Date('2026-06-07T03:59:59Z'); // midnight ET = 04:00 UTC
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function tick(){
+    const now = new Date();
+    const diff = EXPIRY - now;
+
+    if(diff <= 0){
+      // Countdown expired — hide the banner
+      const bar = document.getElementById('plb');
+      if(bar) bar.style.display = 'none';
+      return;
+    }
+
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+
+    // Banner timer
+    const setEl = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+    setEl('plb-d', pad(d));
+    setEl('plb-h', pad(h));
+    setEl('plb-m', pad(m));
+    setEl('plb-s', pad(s));
+
+    // Pricing section mini timer
+    setEl('pcd-d', pad(d));
+    setEl('pcd-h', pad(h));
+    setEl('pcd-m', pad(m));
+    setEl('pcd-s', pad(s));
+  }
+
+  tick();
+  setInterval(tick, 1000);
+
+  // Dismiss banner (session only)
+  document.addEventListener('DOMContentLoaded', function(){
+    const btn = document.getElementById('plb-dismiss');
+    const bar = document.getElementById('plb');
+    if(btn && bar){
+      // Restore if not dismissed this session
+      if(sessionStorage.getItem('plb-dismissed')) bar.style.display='none';
+      btn.addEventListener('click', function(){
+        bar.style.display='none';
+        sessionStorage.setItem('plb-dismissed','1');
+      });
+    }
+  });
+})();
+
 // Close overlay when clicking the dark backdrop (outside the panel)
 document.addEventListener('DOMContentLoaded', function(){
   const overlay = document.getElementById('results-overlay');
@@ -1677,10 +1833,10 @@ document.addEventListener('click',function(e){
     </div>
     <div class="overlay-buy-bar">
       <div class="overlay-buy-text">
-        <strong>GTA Realtor AI Toolkit — $47 CAD</strong>
-        40 prompts · 5 email templates · 3 neighbourhood guides · instant download
+        <strong>GTA Realtor AI Toolkit — $35 CAD pre-launch (was $47)</strong>
+        Use code <strong style="color:var(--gold);letter-spacing:0.05em;">LAUNCH25</strong> at checkout · 40 prompts · 5 email templates · 3 neighbourhood guides · instant download
       </div>
-      <button class="btn-primary" data-action="checkout" style="flex-shrink:0;">Get the toolkit — $47 CAD →</button>
+      <button class="btn-primary" data-action="checkout" style="flex-shrink:0;">Get the toolkit — $35 CAD →</button>
     </div>
   </div>
 </div>

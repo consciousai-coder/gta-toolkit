@@ -1026,7 +1026,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
       <h3 class="gate-h3">Unlock your performance analysis</h3>
       <p class="gate-p">Enter your name and email. Your personalized report will be sent to you — and the live benchmarks unlock instantly.</p>
       <div class="gate-form">
-        <div><label class="field-label" for="gate-name">First name</label><input class="text-input" type="text" id="gate-name" placeholder="e.g. Karen"/></div>
+        <div><label class="field-label" for="gate-name">First name</label><input class="text-input" type="text" id="gate-name" placeholder="e.g. Gurpreet"/></div>
         <div><label class="field-label" for="gate-email">Email address</label><input class="text-input" type="email" id="gate-email" placeholder="your@email.com"/></div>
         <button class="btn-primary" data-action="unlock" style="margin-top:4px;">Unlock my free analysis →</button>
         <p class="gate-fine">No spam. Used only to send your report summary.</p>
@@ -1446,6 +1446,22 @@ function unlockAnalyzer(){
   if(!name){err.textContent='Please enter your first name.';err.style.display='block';return;}
   if(!email||!email.includes('@')){err.textContent='Please enter a valid email.';err.style.display='block';return;}
   capturedEmail=email; capturedName=name;
+  // ── Brevo contact capture ──────────────────────────────
+  fetch('https://api.brevo.com/v3/contacts',{
+    method:'POST',
+    headers:{
+      'accept':'application/json',
+      'content-type':'application/json',
+      'api-key':'YOUR_BREVO_API_KEY_HERE'
+    },
+    body:JSON.stringify({
+      email:email,
+      attributes:{FIRSTNAME:name},
+      listIds:[2],
+      updateEnabled:true
+    })
+  }).catch(function(){/* silent fail — never block the user */});
+  // ──────────────────────────────────────────────────────
   document.getElementById('email-gate-wrap').style.display='none';
   const form=document.getElementById('analyzer-form');
   form.style.display='grid';

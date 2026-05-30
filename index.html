@@ -1447,20 +1447,10 @@ function unlockAnalyzer(){
   if(!email||!email.includes('@')){err.textContent='Please enter a valid email.';err.style.display='block';return;}
   capturedEmail=email; capturedName=name;
   // ── Brevo contact capture ──────────────────────────────
-  fetch('https://api.brevo.com/v3/contacts',{
-    method:'POST',
-    headers:{
-      'accept':'application/json',
-      'content-type':'application/json',
-      'api-key':'YOUR_BREVO_API_KEY_HERE'
-    },
-    body:JSON.stringify({
-      email:email,
-      attributes:{FIRSTNAME:name},
-      listIds:[2],
-      updateEnabled:true
-    })
-  }).catch(function(){/* silent fail — never block the user */});
+  fetch('https://your-worker.yourname.workers.dev', {
+  method: 'POST',
+  body: JSON.stringify({ email: email, name: name })
+}).catch(function(){/* silent fail — never block the user */});
   // ──────────────────────────────────────────────────────
   document.getElementById('email-gate-wrap').style.display='none';
   const form=document.getElementById('analyzer-form');

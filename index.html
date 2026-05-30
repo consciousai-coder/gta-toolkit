@@ -1447,7 +1447,7 @@ function unlockAnalyzer(){
   if(!email||!email.includes('@')){err.textContent='Please enter a valid email.';err.style.display='block';return;}
   capturedEmail=email; capturedName=name;
   // ── Brevo contact capture ──────────────────────────────
-  fetch('https://your-worker.yourname.workers.dev', {
+  fetch('https://square-queen-e278.gsr-contact.workers.dev', {
   method: 'POST',
   body: JSON.stringify({ email: email, name: name })
 }).catch(function(){/* silent fail — never block the user */});
